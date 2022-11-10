@@ -27,9 +27,9 @@ spec:
               mountPath: /var/lib/aion/UI/data-platform-api-orders-creates-subfunc-rmq-kube/public/
           env:
             - name : "RMQ_QUEUE_FROM"
-              value: "data-platform-api-orders-headers-creates-subfunc-queue-from"
+              value: "data-platform-api-orders-headers-creates-subfunc-queue"
             - name : "RMQ_QUEUE_TO"
-              value: "data-platform-api-orders-orders-creates-subfunc-queue-from"
+              value: "data-platform-api-orders-headers-creates-subfunc-queue"
             - name : "MYSQL_DB_NAME"
               value: "DataPlatformMastersAndTransactionsMysqlKube"
           envFrom:
