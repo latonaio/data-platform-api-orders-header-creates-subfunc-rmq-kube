@@ -1,7 +1,7 @@
 package subfunction
 
 import (
-	"data-platform-api-orders-creates-subfunc-rmq-kube/database/models"
+	"data-platform-api-orders-headers-creates-subfunc-rmq-kube/database/models"
 	"fmt"
 
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"

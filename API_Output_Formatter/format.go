@@ -1,8 +1,8 @@
 package api_output_formatter
 
 import (
-	api_input_reader "data-platform-api-orders-creates-subfunc-rmq-kube/API_Input_Reader"
-	"data-platform-api-orders-creates-subfunc-rmq-kube/database/models"
+	api_input_reader "data-platform-api-orders-headers-creates-subfunc-rmq-kube/API_Input_Reader"
+	"data-platform-api-orders-headers-creates-subfunc-rmq-kube/database/models"
 )
 
 func ConvertToHeaderForBuyer(

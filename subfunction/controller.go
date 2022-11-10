@@ -2,11 +2,11 @@ package subfunction
 
 import (
 	"context"
-	api_input_reader "data-platform-api-orders-creates-subfunc-rmq-kube/API_Input_Reader"
-	api_output_formatter "data-platform-api-orders-creates-subfunc-rmq-kube/API_Output_Formatter"
-	api_processing_data_formatter "data-platform-api-orders-creates-subfunc-rmq-kube/API_Processing_Data_Formatter"
-	"data-platform-api-orders-creates-subfunc-rmq-kube/database"
-	"data-platform-api-orders-creates-subfunc-rmq-kube/database/models"
+	api_input_reader "data-platform-api-orders-headers-creates-subfunc-rmq-kube/API_Input_Reader"
+	api_output_formatter "data-platform-api-orders-headers-creates-subfunc-rmq-kube/API_Output_Formatter"
+	api_processing_data_formatter "data-platform-api-orders-headers-creates-subfunc-rmq-kube/API_Processing_Data_Formatter"
+	"data-platform-api-orders-headers-creates-subfunc-rmq-kube/database"
+	"data-platform-api-orders-headers-creates-subfunc-rmq-kube/database/models"
 	"fmt"
 	"sync"
 	"time"

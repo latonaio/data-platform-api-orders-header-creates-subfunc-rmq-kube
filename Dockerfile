@@ -12,16 +12,16 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o data-platform-api-orders-creates-subfunc-rmq-kube
+RUN go build -o data-platform-api-orders-headers-creates-subfunc-rmq-kube
 
 # Runtime Container
 FROM alpine:3.14
 RUN apk add --no-cache libc6-compat
-ENV SERVICE=data-platform-api-orders-creates-subfunc-rmq-kube \
+ENV SERVICE=data-platform-api-orders-headers-creates-subfunc-rmq-kube \
     APP_DIR="${AION_HOME}/${POSITION}/${SERVICE}"
 
 WORKDIR ${AION_HOME}
 
-COPY --from=builder /go/src/github.com/latonaio/data-platform-api-orders-creates-subfunc-rmq-kube .
+COPY --from=builder /go/src/github.com/latonaio/data-platform-api-orders-headers-creates-subfunc-rmq-kube .
 
-CMD ["./data-platform-api-orders-creates-subfunc-rmq-kube"]
+CMD ["./data-platform-api-orders-headers-creates-subfunc-rmq-kube"]

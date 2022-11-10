@@ -1,7 +1,7 @@
 package api_processing_data_formatter
 
 import (
-	"data-platform-api-orders-creates-subfunc-rmq-kube/database/models"
+	"data-platform-api-orders-headers-creates-subfunc-rmq-kube/database/models"
 )
 
 func ConvertToHeaderRelatedDataForBuyer(

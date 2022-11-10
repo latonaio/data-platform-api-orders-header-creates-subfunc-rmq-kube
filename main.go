@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
-	api_input_reader "data-platform-api-orders-creates-subfunc-rmq-kube/API_Input_Reader"
-	"data-platform-api-orders-creates-subfunc-rmq-kube/config"
-	"data-platform-api-orders-creates-subfunc-rmq-kube/database"
-	"data-platform-api-orders-creates-subfunc-rmq-kube/subfunction"
+	api_input_reader "data-platform-api-orders-headers-creates-subfunc-rmq-kube/API_Input_Reader"
+	"data-platform-api-orders-headers-creates-subfunc-rmq-kube/config"
+	"data-platform-api-orders-headers-creates-subfunc-rmq-kube/database"
+	"data-platform-api-orders-headers-creates-subfunc-rmq-kube/subfunction"
 	"encoding/json"
 	"fmt"
 
