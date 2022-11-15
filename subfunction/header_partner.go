@@ -2,68 +2,90 @@ package subfunction
 
 import (
 	api_input_reader "data-platform-api-orders-headers-creates-subfunc-rmq-kube/API_Input_Reader"
-	"data-platform-api-orders-headers-creates-subfunc-rmq-kube/database/models"
+	api_processing_data_formatter "data-platform-api-orders-headers-creates-subfunc-rmq-kube/API_Processing_Data_Formatter"
+	"database/sql"
 	"fmt"
-
-	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+	"strings"
 )
 
-func (f *SubFunction) ExtractBusinessPartnerCustomerPartnerFunctionArray(
-	businessPartner *int,
-	buyer *int,
-) (models.DataPlatformBusinessPartnerCustomerPartnerFunctionDatumSlice, error) {
-	res, err := models.DataPlatformBusinessPartnerCustomerPartnerFunctionData(
-		qm.And("BusinessPartner=?", *businessPartner),
-		qm.And("Customer=?", *buyer),
-	).All(f.ctx, f.db)
+func (f *SubFunction) HeaderPartnerFunction(
+	buyerSellerDetection *api_processing_data_formatter.BuyerSellerDetection,
+	sdc *api_input_reader.SDC,
+	psdc *api_processing_data_formatter.SDC,
+) (*[]api_processing_data_formatter.HeaderPartnerFunction, error) {
+	var rows *sql.Rows
+	var err error
+
+	dataKey, err := psdc.ConvertToHeaderPartnerFunctionKey()
 	if err != nil {
+		fmt.Printf("err = %+v \n", err)
 		return nil, err
 	}
-	if res == nil {
-		return nil, fmt.Errorf("sql: no rows in result set")
-	}
 
-	return res, nil
-}
+	dataKey.BusinessPartnerID = buyerSellerDetection.BusinessPartnerID
 
-func (f *SubFunction) ExtractBusinessPartnerSupplierPartnerFunctionArray(
-	businessPartner *int,
-	seller *int,
-) (models.DataPlatformBusinessPartnerSupplierPartnerFunctionDatumSlice, error) {
-	res, err := models.DataPlatformBusinessPartnerSupplierPartnerFunctionData(
-		qm.And("BusinessPartner=?", *businessPartner),
-		qm.And("Supplier=?", *seller),
-	).All(f.ctx, f.db)
-	if err != nil {
-		return nil, err
-	}
-	if res == nil {
-		return nil, fmt.Errorf("sql: no rows in result set")
-	}
-
-	return res, nil
-}
-
-func (f *SubFunction) ExtractBusinessPartnerGeneralArray(
-	headerPartner []api_input_reader.HeaderPartner,
-) (models.DataPlatformBusinessPartnerGeneralDatumSlice, error) {
-	var res models.DataPlatformBusinessPartnerGeneralDatumSlice
-	where := make([]qm.QueryMod, 0, len(headerPartner))
-	for _, v := range headerPartner {
-		where = append(where,
-			qm.Or("BusinessPartner=?", v.BusinessPartner),
+	if psdc.Header.BuyerOrSeller == "Seller" {
+		dataKey.CustomerOrSupplier = buyerSellerDetection.Buyer
+		rows, err = f.db.Query(
+			`SELECT BusinessPartner, PartnerCounter, PartnerFunction, PartnerFunctionBusinessPartner, DefaultPartner
+			FROM DataPlatformMastersAndTransactionsMysqlKube.data_platform_business_partner_customer_partner_function_data
+			WHERE (BusinessPartner, Customer) = (?, ?);`, dataKey.BusinessPartnerID, dataKey.CustomerOrSupplier,
 		)
+		if err != nil {
+			fmt.Printf("err = %+v \n", err)
+			return nil, err
+		}
+	} else if psdc.Header.BuyerOrSeller == "Buyer" {
+		dataKey.CustomerOrSupplier = buyerSellerDetection.Seller
+		rows, err = f.db.Query(
+			`SELECT BusinessPartner, PartnerCounter, PartnerFunction, PartnerFunctionBusinessPartner, DefaultPartner
+			FROM DataPlatformMastersAndTransactionsMysqlKube.data_platform_business_partner_supplier_partner_function_data
+			WHERE (BusinessPartner, Supplier) = (?, ?);`, dataKey.BusinessPartnerID, dataKey.CustomerOrSupplier,
+		)
+		if err != nil {
+			fmt.Printf("err = %+v \n", err)
+			return nil, err
+		}
+	} else {
+		return nil, nil
 	}
 
-	res, err := models.DataPlatformBusinessPartnerGeneralData(
-		where...,
-	).All(f.ctx, f.db)
+	data, err := psdc.ConvertToHeaderPartnerFunction(sdc, rows)
 	if err != nil {
+		fmt.Printf("err = %+v \n", err)
 		return nil, err
 	}
-	if res == nil {
-		return nil, fmt.Errorf("sql: no rows in result set")
+
+	return data, err
+
+}
+
+func (f *SubFunction) HeaderPartnerBPGeneral(
+	headerPartnerFunction *[]api_processing_data_formatter.HeaderPartnerFunction,
+	sdc *api_input_reader.SDC,
+	psdc *api_processing_data_formatter.SDC,
+) (*[]api_processing_data_formatter.HeaderPartnerBPGeneral, error) {
+	var args []interface{}
+	repeat := strings.Repeat("?,", len(*headerPartnerFunction)-1) + "?"
+	for _, tag := range *headerPartnerFunction {
+		args = append(args, tag.BusinessPartner)
 	}
 
-	return res, nil
+	rows, err := f.db.Query(
+		`SELECT BusinessPartner, BusinessPartnerFullName, BusinessPartnerName, Country, Language, Currency, AddressID
+		FROM DataPlatformMastersAndTransactionsMysqlKube.data_platform_business_partner_general_data
+		WHERE BusinessPartner IN ( `+repeat+` );`, args...,
+	)
+	if err != nil {
+		fmt.Printf("err = %+v \n", err)
+		return nil, err
+	}
+
+	data, err := psdc.ConvertToHeaderPartnerBPGeneral(sdc, rows)
+	if err != nil {
+		fmt.Printf("err = %+v \n", err)
+		return nil, err
+	}
+
+	return data, err
 }

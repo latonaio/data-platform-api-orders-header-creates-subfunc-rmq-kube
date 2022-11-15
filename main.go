@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	api_input_reader "data-platform-api-orders-headers-creates-subfunc-rmq-kube/API_Input_Reader"
+	api_processing_data_formatter "data-platform-api-orders-headers-creates-subfunc-rmq-kube/API_Processing_Data_Formatter"
 	"data-platform-api-orders-headers-creates-subfunc-rmq-kube/config"
 	"data-platform-api-orders-headers-creates-subfunc-rmq-kube/database"
 	"data-platform-api-orders-headers-creates-subfunc-rmq-kube/subfunction"
@@ -59,11 +60,17 @@ func callProcess(ctx context.Context, db *database.Mysql, msg rabbitmq.RabbitmqM
 
 	subfunc := subfunction.NewSubFunction(ctx, db, l)
 	sdc := api_input_reader.ConvertToSDC(msg.Raw())
+	psdc := api_processing_data_formatter.ConvertToSDC()
 
-	err = subfunc.Controller(&sdc)
+	buyerSellerDetection, err := subfunc.BuyerSellerDetection(&sdc, &psdc)
 	if err != nil {
 		return err
 	}
+	err = subfunc.CreateSdc(&sdc, &psdc, buyerSellerDetection)
+	if err != nil {
+		return err
+	}
+
 	l.Info(sdc)
 
 	body, err := json.Marshal(sdc)

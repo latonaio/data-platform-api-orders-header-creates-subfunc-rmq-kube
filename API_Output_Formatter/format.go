@@ -1,195 +1,135 @@
-package api_output_formatter
+package dpfm_api_output_formatter
 
-import (
-	api_input_reader "data-platform-api-orders-headers-creates-subfunc-rmq-kube/API_Input_Reader"
-	"data-platform-api-orders-headers-creates-subfunc-rmq-kube/database/models"
-)
+import api_processing_data_formatter "data-platform-api-orders-headers-creates-subfunc-rmq-kube/API_Processing_Data_Formatter"
 
-func ConvertToHeaderForBuyer(
-	order *api_input_reader.Order,
-	bPSupplierRecord *models.DataPlatformBusinessPartnerSupplierDatum,
-	nRLatestNumberRecord *models.DataPlatformNumberRangeLatestNumberDatum,
-	bPSupplierPartnerFunctionArray models.DataPlatformBusinessPartnerSupplierPartnerFunctionDatumSlice,
-	bPGeneralArray models.DataPlatformBusinessPartnerGeneralDatumSlice,
-	bPSupplierPartnerPlantArray models.DataPlatformBusinessPartnerSupplierPartnerPlantDatumSlice,
-) *api_input_reader.Order {
-	order.OrderID = CalculateOrderId(nRLatestNumberRecord.LatestNumber.Int)
-	order.Incoterms = bPSupplierRecord.Incoterms.String
-	order.PaymentTerms = bPSupplierRecord.PaymentTerms.String
-	order.PaymentMethod = bPSupplierRecord.PaymentMethod.String
-	order.BPAccountAssignmentGroup = bPSupplierRecord.BPAccountAssignmentGroup.String
-	order.HeaderPartner = ConvertToHeaderPartnerForBuyer(order.HeaderPartner, bPSupplierPartnerFunctionArray, bPGeneralArray, bPSupplierPartnerPlantArray)
+func ConvertToHeader(
+	buyerSellerDetection *api_processing_data_formatter.BuyerSellerDetection,
+	calculateOrderID *api_processing_data_formatter.CalculateOrderID,
+	headerBPCustomerSupplier *api_processing_data_formatter.HeaderBPCustomerSupplier,
+) (*Header, error) {
+	pm := &Header{}
 
-	return order
+	pm.OrderID = calculateOrderID.OrderIDLatestNumber
+	pm.Buyer = buyerSellerDetection.Buyer
+	pm.Seller = buyerSellerDetection.Seller
+	pm.Incoterms = headerBPCustomerSupplier.Incoterms
+	pm.PaymentTerms = headerBPCustomerSupplier.PaymentTerms
+	pm.PaymentMethod = headerBPCustomerSupplier.PaymentMethod
+	pm.BPAccountAssignmentGroup = headerBPCustomerSupplier.BPAccountAssignmentGroup
+
+	data := pm
+
+	header := Header{
+		OrderID:                         data.OrderID,
+		OrderDate:                       data.OrderDate,
+		OrderType:                       data.OrderType,
+		Buyer:                           data.Buyer,
+		Seller:                          data.Seller,
+		CreationDate:                    data.CreationDate,
+		LastChangeDate:                  data.LastChangeDate,
+		ContractType:                    data.ContractType,
+		ValidityStartDate:               data.ValidityStartDate,
+		ValidityEndDate:                 data.ValidityEndDate,
+		InvoiceScheduleStartDate:        data.InvoiceScheduleStartDate,
+		InvoiceScheduleEndDate:          data.InvoiceScheduleEndDate,
+		TotalNetAmount:                  data.TotalNetAmount,
+		TotalTaxAmount:                  data.TotalTaxAmount,
+		TotalGrossAmount:                data.TotalGrossAmount,
+		OverallDeliveryStatus:           data.OverallDeliveryStatus,
+		TotalBlockStatus:                data.TotalBlockStatus,
+		OverallOrdReltdBillgStatus:      data.OverallOrdReltdBillgStatus,
+		OverallDocReferenceStatus:       data.OverallDocReferenceStatus,
+		TransactionCurrency:             data.TransactionCurrency,
+		PricingDate:                     data.PricingDate,
+		PriceDetnExchangeRate:           data.PriceDetnExchangeRate,
+		RequestedDeliveryDate:           data.RequestedDeliveryDate,
+		HeaderCompleteDeliveryIsDefined: data.HeaderCompleteDeliveryIsDefined,
+		HeaderBillingBlockReason:        data.HeaderBillingBlockReason,
+		DeliveryBlockReason:             data.DeliveryBlockReason,
+		Incoterms:                       data.Incoterms,
+		PaymentTerms:                    data.PaymentTerms,
+		PaymentMethod:                   data.PaymentMethod,
+		ReferenceDocument:               data.ReferenceDocument,
+		ReferenceDocumentItem:           data.ReferenceDocumentItem,
+		BPAccountAssignmentGroup:        data.BPAccountAssignmentGroup,
+		AccountingExchangeRate:          data.AccountingExchangeRate,
+		BillingDocumentDate:             data.BillingDocumentDate,
+		IsExportImportDelivery:          data.IsExportImportDelivery,
+		HeaderText:                      data.HeaderText,
+	}
+
+	return &header, nil
 }
 
-func ConvertToHeaderPartnerForBuyer(
-	inoutHeaderPartner []api_input_reader.HeaderPartner,
-	bPSupplierPartnerFunctionArray models.DataPlatformBusinessPartnerSupplierPartnerFunctionDatumSlice,
-	bPGeneralArray models.DataPlatformBusinessPartnerGeneralDatumSlice,
-	bPSupplierPartnerPlantArray models.DataPlatformBusinessPartnerSupplierPartnerPlantDatumSlice,
-) []api_input_reader.HeaderPartner {
-	headerPartners := make(map[int]api_input_reader.HeaderPartner, len(bPSupplierPartnerFunctionArray))
-	inoutHeaderPartnerMap := make(map[int]api_input_reader.HeaderPartner, len(inoutHeaderPartner))
-	bPSupplierPartnerFunctionArrayMap := make(map[int]models.DataPlatformBusinessPartnerSupplierPartnerFunctionDatum, len(bPSupplierPartnerFunctionArray))
-	bPGeneralArrayMap := make(map[int]models.DataPlatformBusinessPartnerGeneralDatum, len(bPGeneralArray))
-	bPSupplierPartnerPlantArrayMap := make(map[int]models.DataPlatformBusinessPartnerSupplierPartnerPlantDatumSlice, len(bPSupplierPartnerPlantArray))
+func ConvertToHeaderPartner(
+	headerPartnerFunction *[]api_processing_data_formatter.HeaderPartnerFunction,
+	headerPartnerBPGeneral *[]api_processing_data_formatter.HeaderPartnerBPGeneral,
+) (*[]HeaderPartner, error) {
+	var headerPartner []HeaderPartner
+	headerPartnerFunctionMap := make(map[int]api_processing_data_formatter.HeaderPartnerFunction, len(*headerPartnerFunction))
+	headerPartnerBPGeneralMap := make(map[int]api_processing_data_formatter.HeaderPartnerBPGeneral, len(*headerPartnerBPGeneral))
 
-	for i, v := range inoutHeaderPartner {
-		inoutHeaderPartnerMap[*v.BusinessPartner] = inoutHeaderPartner[i]
+	for _, v := range *headerPartnerFunction {
+		headerPartnerFunctionMap[*v.BusinessPartner] = v
 	}
 
-	for i, v := range bPSupplierPartnerFunctionArray {
-		bPSupplierPartnerFunctionArrayMap[v.PartnerFunctionBusinessPartner.Int] = *bPSupplierPartnerFunctionArray[i]
+	for _, v := range *headerPartnerBPGeneral {
+		headerPartnerBPGeneralMap[*v.BusinessPartner] = v
 	}
 
-	for i, v := range bPGeneralArray {
-		bPGeneralArrayMap[v.BusinessPartner] = *bPGeneralArray[i]
+	pm := &HeaderPartner{}
+
+	for key, _ := range headerPartnerFunctionMap {
+		pm.OrderID = headerPartnerFunctionMap[key].OrderID
+		pm.PartnerFunction = headerPartnerFunctionMap[key].PartnerFunction
+		pm.BusinessPartner = headerPartnerBPGeneralMap[key].BusinessPartner
+		pm.BusinessPartnerFullName = headerPartnerBPGeneralMap[key].BusinessPartnerFullName
+		pm.BusinessPartnerName = headerPartnerBPGeneralMap[key].BusinessPartnerName
+		pm.Country = headerPartnerBPGeneralMap[key].Country
+		pm.Language = headerPartnerBPGeneralMap[key].Language
+		pm.Currency = headerPartnerBPGeneralMap[key].Currency
+		pm.AddressID = headerPartnerBPGeneralMap[key].AddressID
+
+		data := pm
+		headerPartner = append(headerPartner, HeaderPartner{
+			OrderID:                 data.OrderID,
+			PartnerFunction:         data.PartnerFunction,
+			BusinessPartner:         data.BusinessPartner,
+			BusinessPartnerFullName: data.BusinessPartnerFullName,
+			BusinessPartnerName:     data.BusinessPartnerName,
+			Organization:            data.Organization,
+			Country:                 data.Country,
+			Language:                data.Language,
+			Currency:                data.Currency,
+			ExternalDocumentID:      data.ExternalDocumentID,
+			AddressID:               data.AddressID,
+		})
 	}
 
-	for i, v := range bPSupplierPartnerPlantArray {
-		bPSupplierPartnerPlantArrayMap[v.PartnerFunctionBusinessPartner] = append(bPSupplierPartnerPlantArrayMap[v.PartnerFunctionBusinessPartner], bPSupplierPartnerPlantArray[i])
-	}
-
-	for businessPartnerID, bPSupplierPartnerFunctionRecord := range bPSupplierPartnerFunctionArrayMap {
-		bPGeneralRecord := bPGeneralArrayMap[bPSupplierPartnerFunctionRecord.PartnerFunctionBusinessPartner.Int]
-
-		if _, ok := inoutHeaderPartnerMap[businessPartnerID]; !ok {
-			inoutHeaderPartnerMap[businessPartnerID] = api_input_reader.HeaderPartner{}
-		}
-
-		newHeaderPartner := inoutHeaderPartnerMap[businessPartnerID]
-
-		newHeaderPartner.PartnerFunction = bPSupplierPartnerFunctionRecord.PartnerFunction.String
-		newHeaderPartner.BusinessPartner = bPSupplierPartnerFunctionRecord.PartnerFunctionBusinessPartner.Ptr()
-		newHeaderPartner.BusinessPartnerFullName = bPGeneralRecord.BusinessPartnerFullName.String
-		newHeaderPartner.BusinessPartnerName = bPGeneralRecord.BusinessPartnerName
-		newHeaderPartner.Country = bPGeneralRecord.Country
-		newHeaderPartner.Language = bPGeneralRecord.Language
-		newHeaderPartner.Currency = bPGeneralRecord.Currency
-		newHeaderPartner.AddressID = bPGeneralRecord.AddressID.Ptr()
-
-		bPSupplierPartnerPlantArray, ok := bPSupplierPartnerPlantArrayMap[businessPartnerID]
-		if ok {
-			for i, v := range newHeaderPartner.HeaderPartnerPlant {
-				if v.Plant != "" {
-					break
-				}
-				if i == len(newHeaderPartner.HeaderPartnerPlant)-1 {
-					newHeaderPartner.HeaderPartnerPlant = nil
-				}
-			}
-			for _, bPSupplierPartnerPlantRecord := range bPSupplierPartnerPlantArray {
-				newHeaderPartner.HeaderPartnerPlant = append(newHeaderPartner.HeaderPartnerPlant, api_input_reader.HeaderPartnerPlant{
-					Plant: bPSupplierPartnerPlantRecord.Plant.String,
-				})
-			}
-		}
-
-		headerPartners[businessPartnerID] = newHeaderPartner
-	}
-
-	res := make([]api_input_reader.HeaderPartner, 0, len(headerPartners))
-	for i := range headerPartners {
-		res = append(res, headerPartners[i])
-	}
-
-	return res
+	return &headerPartner, nil
 }
 
-func ConvertToHeaderForSeller(
-	order *api_input_reader.Order,
-	bPCustomerRecord *models.DataPlatformBusinessPartnerCustomerDatum,
-	nRLatestNumberRecord *models.DataPlatformNumberRangeLatestNumberDatum,
-	bPCustomerPartnerFunctionArray models.DataPlatformBusinessPartnerCustomerPartnerFunctionDatumSlice,
-	bPGeneralArray models.DataPlatformBusinessPartnerGeneralDatumSlice,
-	bPCustomerPartnerPlantArray models.DataPlatformBusinessPartnerCustomerPartnerPlantDatumSlice,
-) *api_input_reader.Order {
-	order.OrderID = CalculateOrderId(nRLatestNumberRecord.LatestNumber.Int)
-	order.Incoterms = bPCustomerRecord.Incoterms.String
-	order.PaymentTerms = bPCustomerRecord.PaymentTerms.String
-	order.PaymentMethod = bPCustomerRecord.PaymentMethod.String
-	order.BPAccountAssignmentGroup = bPCustomerRecord.BPAccountAssignmentGroup.String
-	order.HeaderPartner = ConvertToHeaderPartnerForSeller(order.HeaderPartner, bPCustomerPartnerFunctionArray, bPGeneralArray, bPCustomerPartnerPlantArray)
+func ConvertToHeaderPartnerPlant(
+	psdcHeaderPartnerPlant *[]api_processing_data_formatter.HeaderPartnerPlant,
+) (*[]HeaderPartnerPlant, error) {
+	var headerPartnerPlant []HeaderPartnerPlant
 
-	return order
-}
+	pm := &HeaderPartnerPlant{}
 
-func ConvertToHeaderPartnerForSeller(
-	inoutHeaderPartner []api_input_reader.HeaderPartner,
-	bPCustomerPartnerFunctionArray models.DataPlatformBusinessPartnerCustomerPartnerFunctionDatumSlice,
-	bPGeneralArray models.DataPlatformBusinessPartnerGeneralDatumSlice,
-	bPCustomerPartnerPlantArray models.DataPlatformBusinessPartnerCustomerPartnerPlantDatumSlice,
-) []api_input_reader.HeaderPartner {
-	headerPartners := make(map[int]api_input_reader.HeaderPartner, len(bPCustomerPartnerFunctionArray))
-	inoutHeaderPartnerMap := make(map[int]api_input_reader.HeaderPartner, len(inoutHeaderPartner))
-	bPCustomerPartnerFunctionArrayMap := make(map[int]models.DataPlatformBusinessPartnerCustomerPartnerFunctionDatum, len(bPCustomerPartnerFunctionArray))
-	bPGeneralArrayMap := make(map[int]models.DataPlatformBusinessPartnerGeneralDatum, len(bPGeneralArray))
-	bPCustomerPartnerPlantArrayMap := make(map[int]models.DataPlatformBusinessPartnerCustomerPartnerPlantDatumSlice, len(bPCustomerPartnerPlantArray))
+	for i, _ := range *psdcHeaderPartnerPlant {
+		pm.OrderID = (*psdcHeaderPartnerPlant)[i].OrderID
+		pm.PartnerFunction = (*psdcHeaderPartnerPlant)[i].PartnerFunction
+		pm.BusinessPartner = (*psdcHeaderPartnerPlant)[i].BusinessPartner
+		pm.Plant = (*psdcHeaderPartnerPlant)[i].Plant
 
-	for i, v := range inoutHeaderPartner {
-		inoutHeaderPartnerMap[*v.BusinessPartner] = inoutHeaderPartner[i]
+		data := pm
+		headerPartnerPlant = append(headerPartnerPlant, HeaderPartnerPlant{
+			OrderID:         data.OrderID,
+			PartnerFunction: data.PartnerFunction,
+			BusinessPartner: data.BusinessPartner,
+			Plant:           data.Plant,
+		})
 	}
 
-	for i, v := range bPCustomerPartnerFunctionArray {
-		bPCustomerPartnerFunctionArrayMap[v.PartnerFunctionBusinessPartner.Int] = *bPCustomerPartnerFunctionArray[i]
-	}
-
-	for i, v := range bPGeneralArray {
-		bPGeneralArrayMap[v.BusinessPartner] = *bPGeneralArray[i]
-	}
-
-	for i, v := range bPCustomerPartnerPlantArray {
-		bPCustomerPartnerPlantArrayMap[v.PartnerFunctionBusinessPartner] = append(bPCustomerPartnerPlantArrayMap[v.PartnerFunctionBusinessPartner], bPCustomerPartnerPlantArray[i])
-	}
-
-	for businessPartnerID, bPCustomerPartnerFunctionRecord := range bPCustomerPartnerFunctionArrayMap {
-		bPGeneralRecord := bPGeneralArrayMap[bPCustomerPartnerFunctionRecord.PartnerFunctionBusinessPartner.Int]
-
-		if _, ok := inoutHeaderPartnerMap[businessPartnerID]; !ok {
-			inoutHeaderPartnerMap[businessPartnerID] = api_input_reader.HeaderPartner{}
-		}
-
-		newHeaderPartner := inoutHeaderPartnerMap[businessPartnerID]
-
-		newHeaderPartner.PartnerFunction = bPCustomerPartnerFunctionRecord.PartnerFunction.String
-		newHeaderPartner.BusinessPartner = bPCustomerPartnerFunctionRecord.PartnerFunctionBusinessPartner.Ptr()
-		newHeaderPartner.BusinessPartnerFullName = bPGeneralRecord.BusinessPartnerFullName.String
-		newHeaderPartner.BusinessPartnerName = bPGeneralRecord.BusinessPartnerName
-		newHeaderPartner.Country = bPGeneralRecord.Country
-		newHeaderPartner.Language = bPGeneralRecord.Language
-		newHeaderPartner.Currency = bPGeneralRecord.Currency
-		newHeaderPartner.AddressID = bPGeneralRecord.AddressID.Ptr()
-
-		bPCustomerPartnerPlantArray, ok := bPCustomerPartnerPlantArrayMap[businessPartnerID]
-		if ok {
-			for i, v := range newHeaderPartner.HeaderPartnerPlant {
-				if v.Plant != "" {
-					break
-				}
-				if i == len(newHeaderPartner.HeaderPartnerPlant)-1 {
-					newHeaderPartner.HeaderPartnerPlant = nil
-				}
-			}
-			for _, bPCustomerPartnerPlantRecord := range bPCustomerPartnerPlantArray {
-				newHeaderPartner.HeaderPartnerPlant = append(newHeaderPartner.HeaderPartnerPlant, api_input_reader.HeaderPartnerPlant{
-					Plant: bPCustomerPartnerPlantRecord.Plant.String,
-				})
-			}
-		}
-
-		headerPartners[businessPartnerID] = newHeaderPartner
-	}
-
-	res := make([]api_input_reader.HeaderPartner, 0, len(headerPartners))
-	for i := range headerPartners {
-		res = append(res, headerPartners[i])
-	}
-
-	return res
-}
-
-func CalculateOrderId(latestNumber int) *int {
-	orderId := latestNumber + 1
-	return &orderId
+	return &headerPartnerPlant, nil
 }

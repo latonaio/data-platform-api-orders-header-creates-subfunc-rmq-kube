@@ -1,62 +1,79 @@
 package subfunction
 
 import (
-	"data-platform-api-orders-headers-creates-subfunc-rmq-kube/database/models"
+	api_input_reader "data-platform-api-orders-headers-creates-subfunc-rmq-kube/API_Input_Reader"
+	api_processing_data_formatter "data-platform-api-orders-headers-creates-subfunc-rmq-kube/API_Processing_Data_Formatter"
+	"database/sql"
 	"fmt"
-
-	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+	"strings"
 )
 
-func (f *SubFunction) ExtractBusinessPartnerCustomerPartnerPlantArray(
-	businessPartner *int,
-	buyer *int,
-	bPCustomerPartnerFunctionArray models.DataPlatformBusinessPartnerCustomerPartnerFunctionDatumSlice,
-) (models.DataPlatformBusinessPartnerCustomerPartnerPlantDatumSlice, error) {
-	where := make([]qm.QueryMod, 0, len(bPCustomerPartnerFunctionArray))
-	for i := range bPCustomerPartnerFunctionArray {
-		where = append(where,
-			qm.Or(
-				fmt.Sprintf("(`BusinessPartner`, `Customer`, `PartnerCounter`, `PartnerFunction`, `PartnerFunctionBusinessPartner`) = (%d, %d, %d,'%s',%d)", *businessPartner, *buyer, bPCustomerPartnerFunctionArray[i].PartnerCounter, bPCustomerPartnerFunctionArray[i].PartnerFunction.String, bPCustomerPartnerFunctionArray[i].PartnerFunctionBusinessPartner.Int),
-			),
-		)
-	}
+func (f *SubFunction) HeaderPartnerPlant(
+	buyerSellerDetection *api_processing_data_formatter.BuyerSellerDetection,
+	headerPartnerFunction *[]api_processing_data_formatter.HeaderPartnerFunction,
+	sdc *api_input_reader.SDC,
+	psdc *api_processing_data_formatter.SDC,
+) (*[]api_processing_data_formatter.HeaderPartnerPlant, error) {
+	var args []interface{}
+	var rows *sql.Rows
+	var err error
 
-	res, err := models.DataPlatformBusinessPartnerCustomerPartnerPlantData(
-		where...,
-	).All(f.ctx, f.db)
+	dataKey, err := psdc.ConvertToHeaderPartnerPlantKey(len(*headerPartnerFunction))
 	if err != nil {
+		fmt.Printf("err = %+v \n", err)
 		return nil, err
 	}
-	if res == nil {
-		return nil, fmt.Errorf("sql: no rows in result set")
+
+	for i, v := range *headerPartnerFunction {
+		(*dataKey)[i].BusinessPartnerID = buyerSellerDetection.BusinessPartnerID
+		if psdc.Header.BuyerOrSeller == "Seller" {
+			(*dataKey)[i].CustomerOrSupplier = buyerSellerDetection.Buyer
+		} else if psdc.Header.BuyerOrSeller == "Buyer" {
+			(*dataKey)[i].CustomerOrSupplier = buyerSellerDetection.Seller
+		}
+		(*dataKey)[i].PartnerCounter = v.PartnerCounter
+		(*dataKey)[i].PartnerFunction = v.PartnerFunction
+		(*dataKey)[i].PartnerFunctionBusinessPartner = v.BusinessPartner
 	}
 
-	return res, nil
-}
+	repeat := strings.Repeat("(?,?,?,?,?),", len(*dataKey)-1) + "(?,?,?,?,?)"
+	for _, tag := range *dataKey {
+		args = append(
+			args,
+			tag.BusinessPartnerID,
+			tag.CustomerOrSupplier,
+			tag.PartnerCounter,
+			tag.PartnerFunction,
+			tag.PartnerFunctionBusinessPartner)
+	}
 
-func (f *SubFunction) ExtractBusinessPartnerSupplierPartnerPlantArray(
-	businessPartner *int,
-	seller *int,
-	bPSupplierPartnerFunctionArray models.DataPlatformBusinessPartnerSupplierPartnerFunctionDatumSlice,
-) (models.DataPlatformBusinessPartnerSupplierPartnerPlantDatumSlice, error) {
-	where := make([]qm.QueryMod, 0, len(bPSupplierPartnerFunctionArray))
-	for i := range bPSupplierPartnerFunctionArray {
-		where = append(where,
-			qm.Or(
-				fmt.Sprintf("(`BusinessPartner`, `Supplier`, `PartnerCounter`, `PartnerFunction`, `PartnerFunctionBusinessPartner`) = (%d, %d, %d,'%s',%d)", *businessPartner, *seller, bPSupplierPartnerFunctionArray[i].PartnerCounter, bPSupplierPartnerFunctionArray[i].PartnerFunction.String, bPSupplierPartnerFunctionArray[i].PartnerFunctionBusinessPartner.Int),
-			),
+	if psdc.Header.BuyerOrSeller == "Seller" {
+		rows, err = f.db.Query(
+			`SELECT PartnerFunctionBusinessPartner, PartnerFunction, PlantCounter, Plant, DefaultPlant
+				FROM DataPlatformMastersAndTransactionsMysqlKube.data_platform_business_partner_customer_partner_plant_data
+				WHERE (BusinessPartner, Customer, PartnerCounter, PartnerFunction, PartnerFunctionBusinessPartner) IN ( `+repeat+` );`, args...,
 		)
+		if err != nil {
+			fmt.Printf("err = %+v \n", err)
+			return nil, err
+		}
+	} else if psdc.Header.BuyerOrSeller == "Buyer" {
+		rows, err = f.db.Query(
+			`SELECT PartnerFunctionBusinessPartner, PartnerFunction, PlantCounter, Plant, DefaultPlant
+				FROM DataPlatformMastersAndTransactionsMysqlKube.data_platform_business_partner_supplier_partner_plant_data
+				WHERE (BusinessPartner, Supplier, PartnerCounter, PartnerFunction, PartnerFunctionBusinessPartner) IN ( `+repeat+` );`, args...,
+		)
+		if err != nil {
+			fmt.Printf("err = %+v \n", err)
+			return nil, err
+		}
 	}
 
-	res, err := models.DataPlatformBusinessPartnerSupplierPartnerPlantData(
-		where...,
-	).All(f.ctx, f.db)
+	data, err := psdc.ConvertToHeaderPartnerPlant(sdc, rows)
 	if err != nil {
+		fmt.Printf("err = %+v \n", err)
 		return nil, err
 	}
-	if res == nil {
-		return nil, fmt.Errorf("sql: no rows in result set")
-	}
 
-	return res, nil
+	return data, err
 }
