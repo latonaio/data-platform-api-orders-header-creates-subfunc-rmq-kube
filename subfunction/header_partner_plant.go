@@ -4,7 +4,6 @@ import (
 	api_input_reader "data-platform-api-orders-headers-creates-subfunc-rmq-kube/API_Input_Reader"
 	api_processing_data_formatter "data-platform-api-orders-headers-creates-subfunc-rmq-kube/API_Processing_Data_Formatter"
 	"database/sql"
-	"fmt"
 	"strings"
 )
 
@@ -20,7 +19,6 @@ func (f *SubFunction) HeaderPartnerPlant(
 
 	dataKey, err := psdc.ConvertToHeaderPartnerPlantKey(len(*headerPartnerFunction))
 	if err != nil {
-		fmt.Printf("err = %+v \n", err)
 		return nil, err
 	}
 
@@ -54,7 +52,6 @@ func (f *SubFunction) HeaderPartnerPlant(
 				WHERE (BusinessPartner, Customer, PartnerCounter, PartnerFunction, PartnerFunctionBusinessPartner) IN ( `+repeat+` );`, args...,
 		)
 		if err != nil {
-			fmt.Printf("err = %+v \n", err)
 			return nil, err
 		}
 	} else if psdc.Header.BuyerOrSeller == "Buyer" {
@@ -64,14 +61,12 @@ func (f *SubFunction) HeaderPartnerPlant(
 				WHERE (BusinessPartner, Supplier, PartnerCounter, PartnerFunction, PartnerFunctionBusinessPartner) IN ( `+repeat+` );`, args...,
 		)
 		if err != nil {
-			fmt.Printf("err = %+v \n", err)
 			return nil, err
 		}
 	}
 
 	data, err := psdc.ConvertToHeaderPartnerPlant(sdc, rows)
 	if err != nil {
-		fmt.Printf("err = %+v \n", err)
 		return nil, err
 	}
 

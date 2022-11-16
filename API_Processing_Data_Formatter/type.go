@@ -175,18 +175,3 @@ type HeaderPartnerPlant struct {
 	Plant           string `json:"Plant"`
 	DefaultPlant    *bool  `json:"DefaultPlant"`
 }
-
-type HeaderPartnerRelatedData struct {
-	PartnerFunction PartnerFunction `json:"PartnerFunction"`
-	PartnerPlant    []PartnerPlant  `json:"PartnerPlant"`
-}
-
-type PartnerFunction struct {
-	PartnerCounter *int  `json:"PartnerCounter"`
-	DefaultPartner *bool `json:"DefaultPartner"`
-}
-
-type PartnerPlant struct {
-	PlantCounter *int  `json:"PlantCounter"`
-	DefaultPlant *bool `json:"DefaultPlant"`
-}

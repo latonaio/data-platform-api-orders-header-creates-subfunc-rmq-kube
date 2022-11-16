@@ -4,7 +4,6 @@ import (
 	api_input_reader "data-platform-api-orders-headers-creates-subfunc-rmq-kube/API_Input_Reader"
 	api_processing_data_formatter "data-platform-api-orders-headers-creates-subfunc-rmq-kube/API_Processing_Data_Formatter"
 	"database/sql"
-	"fmt"
 )
 
 func (f *SubFunction) CalculateOrderID(
@@ -14,7 +13,6 @@ func (f *SubFunction) CalculateOrderID(
 ) (*api_processing_data_formatter.CalculateOrderID, error) {
 	dataKey, err := psdc.ConvertToCalculateOrderIDKey()
 	if err != nil {
-		fmt.Printf("err = %+v \n", err)
 		return nil, err
 	}
 
@@ -26,13 +24,11 @@ func (f *SubFunction) CalculateOrderID(
 		WHERE (ServiceLabel, FieldNameWithNumberRange) = (?, ?);`, dataKey.ServiceLabel, dataKey.FieldNameWithNumberRange,
 	)
 	if err != nil {
-		fmt.Printf("err = %+v \n", err)
 		return nil, err
 	}
 
 	dataQueryGets, err := psdc.ConvertToCalculateOrderIDQueryGets(sdc, rows)
 	if err != nil {
-		fmt.Printf("err = %+v \n", err)
 		return nil, err
 	}
 
@@ -40,7 +36,6 @@ func (f *SubFunction) CalculateOrderID(
 
 	data, err := psdc.ConvertToCalculateOrderID(calculateOrderID)
 	if err != nil {
-		fmt.Printf("err = %+v \n", err)
 		return nil, err
 	}
 
@@ -67,7 +62,6 @@ func (f *SubFunction) HeaderBPCustomerSupplier(
 		WHERE (BusinessPartner, Customer) = (?, ?);`, buyerSellerDetection.BusinessPartnerID, buyerSellerDetection.Buyer,
 		)
 		if err != nil {
-			fmt.Printf("err = %+v \n", err)
 			return nil, err
 		}
 	} else if psdc.Header.BuyerOrSeller == "Buyer" {
@@ -77,16 +71,12 @@ func (f *SubFunction) HeaderBPCustomerSupplier(
 		WHERE (BusinessPartner, Supplier) = (?, ?);`, buyerSellerDetection.BusinessPartnerID, buyerSellerDetection.Seller,
 		)
 		if err != nil {
-			fmt.Printf("err = %+v \n", err)
 			return nil, err
 		}
-	} else {
-		return nil, nil
 	}
 
 	data, err := psdc.ConvertToHeaderBPCustomerSupplier(sdc, rows)
 	if err != nil {
-		fmt.Printf("err = %+v \n", err)
 		return nil, err
 	}
 

@@ -48,7 +48,6 @@ func (psdc *SDC) ConvertToCalculateOrderIDKey() (*CalculateOrderIDKey, error) {
 		ServiceLabel:             "",
 		FieldNameWithNumberRange: "OrderID",
 	}
-
 	data := pm
 
 	calculateOrderIDKey := CalculateOrderIDKey{
@@ -69,14 +68,20 @@ func (psdc *SDC) ConvertToCalculateOrderIDQueryGets(
 		OrderIDLatestNumber:      nil,
 	}
 
-	for rows.Next() {
+	for i := 0; true; i++ {
+		if !rows.Next() {
+			if i == 0 {
+				return nil, fmt.Errorf("sql: no rows in result set")
+			} else {
+				break
+			}
+		}
 		err := rows.Scan(
 			&pm.ServiceLabel,
 			&pm.FieldNameWithNumberRange,
 			&pm.OrderIDLatestNumber,
 		)
 		if err != nil {
-			fmt.Printf("err = %+v \n", err)
 			return nil, err
 		}
 	}
@@ -124,7 +129,14 @@ func (psdc *SDC) ConvertToHeaderBPCustomerSupplier(
 		BPAccountAssignmentGroup: "",
 	}
 
-	for rows.Next() {
+	for i := 0; true; i++ {
+		if !rows.Next() {
+			if i == 0 {
+				return nil, fmt.Errorf("sql: no rows in result set")
+			} else {
+				break
+			}
+		}
 		err := rows.Scan(
 			&pm.BusinessPartnerID,
 			&pm.CustomerOrSupplier,
@@ -133,7 +145,6 @@ func (psdc *SDC) ConvertToHeaderBPCustomerSupplier(
 			&pm.PaymentMethod,
 			&pm.BPAccountAssignmentGroup)
 		if err != nil {
-			fmt.Printf("err = %+v \n", err)
 			return nil, err
 		}
 	}
@@ -159,7 +170,6 @@ func (psdc *SDC) ConvertToHeaderPartnerFunctionKey() (*HeaderPartnerFunctionKey,
 		BusinessPartnerID:  nil,
 		CustomerOrSupplier: nil,
 	}
-
 	data := pm
 
 	headerPartnerFunctionKey := HeaderPartnerFunctionKey{
@@ -186,7 +196,14 @@ func (psdc *SDC) ConvertToHeaderPartnerFunction(
 		DefaultPartner:    nil,
 	}
 
-	for rows.Next() {
+	for i := 0; true; i++ {
+		if !rows.Next() {
+			if i == 0 {
+				return nil, fmt.Errorf("sql: no rows in result set")
+			} else {
+				break
+			}
+		}
 		err := rows.Scan(
 			&pm.BusinessPartnerID,
 			&pm.PartnerCounter,
@@ -194,7 +211,6 @@ func (psdc *SDC) ConvertToHeaderPartnerFunction(
 			&pm.BusinessPartner,
 			&pm.DefaultPartner)
 		if err != nil {
-			fmt.Printf("err = %+v \n", err)
 			return nil, err
 		}
 
@@ -229,7 +245,14 @@ func (psdc *SDC) ConvertToHeaderPartnerBPGeneral(
 		AddressID:               nil,
 	}
 
-	for rows.Next() {
+	for i := 0; true; i++ {
+		if !rows.Next() {
+			if i == 0 {
+				return nil, fmt.Errorf("sql: no rows in result set")
+			} else {
+				break
+			}
+		}
 		err := rows.Scan(
 			&pm.BusinessPartner,
 			&pm.BusinessPartnerFullName,
@@ -240,7 +263,6 @@ func (psdc *SDC) ConvertToHeaderPartnerBPGeneral(
 			&pm.AddressID,
 		)
 		if err != nil {
-			fmt.Printf("err = %+v \n", err)
 			return nil, err
 		}
 
@@ -272,7 +294,6 @@ func (psdc *SDC) ConvertToHeaderPartnerPlantKey(length int) (*[]HeaderPartnerPla
 		PartnerFunction:                "",
 		PartnerFunctionBusinessPartner: nil,
 	}
-
 	data := pm
 
 	for i := 0; i < length; i++ {
@@ -304,7 +325,14 @@ func (psdc *SDC) ConvertToHeaderPartnerPlant(
 		DefaultPlant:    nil,
 	}
 
-	for rows.Next() {
+	for i := 0; true; i++ {
+		if !rows.Next() {
+			if i == 0 {
+				return nil, fmt.Errorf("sql: no rows in result set")
+			} else {
+				break
+			}
+		}
 		err := rows.Scan(
 			&pm.BusinessPartner,
 			&pm.PartnerFunction,
@@ -313,7 +341,6 @@ func (psdc *SDC) ConvertToHeaderPartnerPlant(
 			&pm.DefaultPlant,
 		)
 		if err != nil {
-			fmt.Printf("err = %+v \n", err)
 			return nil, err
 		}
 

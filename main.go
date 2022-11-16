@@ -71,7 +71,7 @@ func callProcess(ctx context.Context, db *database.Mysql, msg rabbitmq.RabbitmqM
 		return err
 	}
 
-	l.Info(sdc)
+	l.JsonParseOut(sdc)
 
 	body, err := json.Marshal(sdc)
 	if err != nil {
@@ -80,7 +80,6 @@ func callProcess(ctx context.Context, db *database.Mysql, msg rabbitmq.RabbitmqM
 	var mapData map[string]interface{}
 	json.Unmarshal(body, &mapData)
 
-	// l.Info(mapData)
 	err = msg.Respond(mapData)
 	if err != nil {
 		return err
