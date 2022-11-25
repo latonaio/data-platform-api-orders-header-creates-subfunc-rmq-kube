@@ -43,8 +43,8 @@ func (f *SubFunction) CalculateOrderID(
 }
 
 func CalculateOrderID(latestNumber int) *int {
-	orderId := latestNumber + 1
-	return &orderId
+	res := latestNumber + 1
+	return &res
 }
 
 func (f *SubFunction) HeaderBPCustomerSupplier(

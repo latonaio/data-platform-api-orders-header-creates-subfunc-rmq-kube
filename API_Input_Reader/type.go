@@ -12,7 +12,6 @@ type SDC struct {
 	Orders            Order    `json:"Orders"`
 	APISchema         string   `json:"api_schema"`
 	Accepter          []string `json:"accepter"`
-	OrderID           *int     `json:"order_id"`
 	Deleted           bool     `json:"deleted"`
 }
 

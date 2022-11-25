@@ -3,12 +3,13 @@ package main
 import (
 	"context"
 	api_input_reader "data-platform-api-orders-headers-creates-subfunc-rmq-kube/API_Input_Reader"
+	dpfm_api_output_formatter "data-platform-api-orders-headers-creates-subfunc-rmq-kube/API_Output_Formatter"
 	api_processing_data_formatter "data-platform-api-orders-headers-creates-subfunc-rmq-kube/API_Processing_Data_Formatter"
 	"data-platform-api-orders-headers-creates-subfunc-rmq-kube/config"
-	"data-platform-api-orders-headers-creates-subfunc-rmq-kube/database"
 	"data-platform-api-orders-headers-creates-subfunc-rmq-kube/subfunction"
-	"encoding/json"
 	"fmt"
+
+	database "github.com/latonaio/golang-mysql-network-connector"
 
 	"github.com/latonaio/golang-logging-library-for-data-platform/logger"
 	rabbitmq "github.com/latonaio/rabbitmq-golang-client-for-data-platform"
@@ -23,6 +24,7 @@ func main() {
 		l.Error(err)
 		return
 	}
+	defer db.Close()
 
 	rmq, err := rabbitmq.NewRabbitmqClient(c.RMQ.URL(), c.RMQ.QueueFrom(), "", c.RMQ.QueueTo(), -1)
 	if err != nil {
@@ -34,13 +36,18 @@ func main() {
 	}
 	defer rmq.Stop()
 	for msg := range iter {
-		err = callProcess(ctx, db, msg, c)
-		if err != nil {
-			msg.Fail()
-			l.Error(err)
-			continue
-		}
 		msg.Success()
+		sdc, err := callProcess(ctx, db, msg, c)
+		sdc.SubfuncResult = getBoolPtr(err == nil)
+		if err != nil {
+			sdc.SubfuncError = err.Error()
+			l.Error(err)
+		}
+		l.JsonParseOut(sdc)
+		err = msg.Respond(sdc)
+		if err != nil {
+			l.Error(err)
+		}
 	}
 }
 
@@ -49,40 +56,28 @@ func getSessionID(data map[string]interface{}) string {
 	return id
 }
 
-func callProcess(ctx context.Context, db *database.Mysql, msg rabbitmq.RabbitmqMessage, c *config.Conf) (err error) {
+func callProcess(ctx context.Context, db *database.Mysql, msg rabbitmq.RabbitmqMessage, c *config.Conf) (dpfm_api_output_formatter.SDC, error) {
+	var err error
 	l := logger.NewLogger()
 	l.AddHeaderInfo(map[string]interface{}{"runtime_session_id": getSessionID(msg.Data())})
-	defer func(msg rabbitmq.RabbitmqMessage) {
-		if err != nil {
-			msg.Respond(map[string]interface{}{"result": "error"})
-		}
-	}(msg)
 
 	subfunc := subfunction.NewSubFunction(ctx, db, l)
 	sdc := api_input_reader.ConvertToSDC(msg.Raw())
 	psdc := api_processing_data_formatter.ConvertToSDC()
+	osdc := dpfm_api_output_formatter.ConvertToSDC(msg.Raw())
 
 	buyerSellerDetection, err := subfunc.BuyerSellerDetection(&sdc, &psdc)
 	if err != nil {
-		return err
+		return osdc, err
 	}
-	err = subfunc.CreateSdc(&sdc, &psdc, buyerSellerDetection)
+	err = subfunc.CreateSdc(&sdc, &psdc, &osdc, buyerSellerDetection)
 	if err != nil {
-		return err
+		return osdc, err
 	}
 
-	l.JsonParseOut(sdc)
+	return osdc, nil
+}
 
-	body, err := json.Marshal(sdc)
-	if err != nil {
-		return err
-	}
-	var mapData map[string]interface{}
-	json.Unmarshal(body, &mapData)
-
-	err = msg.Respond(mapData)
-	if err != nil {
-		return err
-	}
-	return nil
+func getBoolPtr(b bool) *bool {
+	return &b
 }

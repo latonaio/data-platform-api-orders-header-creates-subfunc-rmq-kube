@@ -54,13 +54,14 @@ type EC_MC struct {
 }
 
 type SDC struct {
-	MetaData                  *MetaData                  `json:"MetaData"`
-	Header                    *Header                    `json:"Header"`
-	HeaderBPCustomerSupplier  *HeaderBPCustomerSupplier  `json:"HeaderBPCustomerSupplier"`
-	BuyerSellerDetection      *BuyerSellerDetection      `json:"BuyerSellerDetection"`
-	CalculateOrderIDKey       *CalculateOrderIDKey       `json:"CalculateOrderIDKey"`
-	CalculateOrderIDQueryGets *CalculateOrderIDQueryGets `json:"CalculateOrderIDQueryGets"`
-	CalculateOrderID          *CalculateOrderID          `json:"CalculateOrderID"`
+	MetaData                 *MetaData                 `json:"MetaData"`
+	BuyerSellerDetection     *BuyerSellerDetection     `json:"BuyerSellerDetection"`
+	HeaderBPCustomerSupplier *HeaderBPCustomerSupplier `json:"HeaderBPCustomerSupplier"`
+	CalculateOrderID         *CalculateOrderID         `json:"CalculateOrderID"`
+	Header                   *Header                   `json:"Header"`
+	HeaderPartnerFunction    *[]HeaderPartnerFunction  `json:"HeaderPartnerFunction"`
+	HeaderPartnerBPGeneral   *[]HeaderPartnerBPGeneral `json:"HeaderPartnerBPGeneral"`
+	HeaderPartnerPlant       *[]HeaderPartnerPlant     `json:"HeaderPartnerPlant"`
 }
 
 type MetaData struct {
@@ -77,16 +78,18 @@ type BuyerSellerDetection struct {
 
 type Header struct {
 	BuyerOrSeller            string
+	Buyer                    *int `json:"Buyer"`
+	Seller                   *int `json:"Seller"`
 	OrderID                  *int `json:"OrderID"`
 	OrderIDLatestNumber      *int
 	Incoterms                string `json:"Incoterms"`
 	PaymentTerms             string `json:"PaymentTerms"`
 	PaymentMethod            string `json:"PaymentMethod"`
 	BPAccountAssignmentGroup string `json:"BPAccountAssignmentGroup"`
-	HeaderPartner            []HeaderPartner
-	HeaderPartnerFunctionKey *HeaderPartnerFunctionKey `json:"HeaderPartnerFunctionKey"`
-	HeaderPartnerFunction    *HeaderPartnerFunction    `json:"HeaderPartnerFunction"`
-	HeaderPartnerBPGeneral   *HeaderPartnerBPGeneral   `json:"HeaderPartnerBPGeneral"`
+	// HeaderPartner            []HeaderPartner
+	// HeaderPartnerFunctionKey *HeaderPartnerFunctionKey `json:"HeaderPartnerFunctionKey"`
+	// HeaderPartnerFunction    *HeaderPartnerFunction    `json:"HeaderPartnerFunction"`
+	// HeaderPartnerBPGeneral   *HeaderPartnerBPGeneral   `json:"HeaderPartnerBPGeneral"`
 }
 
 type HeaderPartner struct {

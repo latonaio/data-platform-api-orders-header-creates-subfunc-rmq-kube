@@ -71,7 +71,7 @@ func (psdc *SDC) ConvertToCalculateOrderIDQueryGets(
 	for i := 0; true; i++ {
 		if !rows.Next() {
 			if i == 0 {
-				return nil, fmt.Errorf("sql: no rows in result set")
+				return nil, fmt.Errorf("DBに対象のレコードが存在しません。")
 			} else {
 				break
 			}
@@ -132,7 +132,7 @@ func (psdc *SDC) ConvertToHeaderBPCustomerSupplier(
 	for i := 0; true; i++ {
 		if !rows.Next() {
 			if i == 0 {
-				return nil, fmt.Errorf("sql: no rows in result set")
+				return nil, fmt.Errorf("DBに対象のレコードが存在しません。")
 			} else {
 				break
 			}
@@ -199,7 +199,7 @@ func (psdc *SDC) ConvertToHeaderPartnerFunction(
 	for i := 0; true; i++ {
 		if !rows.Next() {
 			if i == 0 {
-				return nil, fmt.Errorf("sql: no rows in result set")
+				return nil, fmt.Errorf("DBに対象のレコードが存在しません。")
 			} else {
 				break
 			}
@@ -248,7 +248,7 @@ func (psdc *SDC) ConvertToHeaderPartnerBPGeneral(
 	for i := 0; true; i++ {
 		if !rows.Next() {
 			if i == 0 {
-				return nil, fmt.Errorf("sql: no rows in result set")
+				return nil, fmt.Errorf("DBに対象のレコードが存在しません。")
 			} else {
 				break
 			}
@@ -328,7 +328,7 @@ func (psdc *SDC) ConvertToHeaderPartnerPlant(
 	for i := 0; true; i++ {
 		if !rows.Next() {
 			if i == 0 {
-				return nil, fmt.Errorf("sql: no rows in result set")
+				return nil, fmt.Errorf("DBに対象のレコードが存在しません。")
 			} else {
 				break
 			}
