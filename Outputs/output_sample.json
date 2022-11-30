@@ -4,12 +4,12 @@
   "redis_key": "abcdefg",
   "filepath": "/var/lib/aion/Data/rededge_sdc/abcdef.json",
   "api_status_code": 200,
-  "runtime_session_id": "f982e32343b24ea39272c534547df545",
+  "runtime_session_id": "boi9ar543dg91ipdnspi099u231280ab0v8af0ew",
   "business_partner": 201,
   "service_label": "ORDERS",
   "message": {
     "Header": {
-      "OrderID": 114,
+      "OrderID": 117,
       "OrderDate": "2022-11-22",
       "OrderType": "",
       "Buyer": 101,
@@ -48,7 +48,7 @@
     },
     "HeaderPartner": [
       {
-        "OrderID": 114,
+        "OrderID": 117,
         "PartnerFunction": "DELIVERTO",
         "BusinessPartner": 102,
         "BusinessPartnerFullName": "株式会社ローソン虎ノ門店",
@@ -61,7 +61,7 @@
         "AddressID": 200000
       },
       {
-        "OrderID": 114,
+        "OrderID": 117,
         "PartnerFunction": "BUYER",
         "BusinessPartner": 101,
         "BusinessPartnerFullName": "株式会社ローソン本社",
@@ -74,7 +74,7 @@
         "AddressID": 100000
       },
       {
-        "OrderID": 114,
+        "OrderID": 117,
         "PartnerFunction": "SELLER",
         "BusinessPartner": 201,
         "BusinessPartnerFullName": "山崎製パン販売株式会社",
@@ -89,19 +89,19 @@
     ],
     "HeaderPartnerPlant": [
       {
-        "OrderID": 114,
+        "OrderID": 117,
         "PartnerFunction": "BUYER",
         "BusinessPartner": 101,
         "Plant": "AB01"
       },
       {
-        "OrderID": 114,
+        "OrderID": 117,
         "PartnerFunction": "DELIVERTO",
         "BusinessPartner": 102,
         "Plant": "AB02"
       },
       {
-        "OrderID": 114,
+        "OrderID": 117,
         "PartnerFunction": "SELLER",
         "BusinessPartner": 201,
         "Plant": "TE01"

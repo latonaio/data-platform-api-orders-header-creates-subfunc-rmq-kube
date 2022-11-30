@@ -7,7 +7,6 @@ import (
 	api_processing_data_formatter "data-platform-api-orders-headers-creates-subfunc-rmq-kube/API_Processing_Data_Formatter"
 	"fmt"
 	"sync"
-	"time"
 
 	database "github.com/latonaio/golang-mysql-network-connector"
 
@@ -61,37 +60,68 @@ func (f *SubFunction) BuyerSellerDetection(
 	if err != nil {
 		return nil, err
 	}
-	psdc.BuyerSellerDetection = buyerSellerDetection
 
 	// 1-0. 入力ファイルのbusiness_partnerがBuyerであるかSellerであるかの判断
 	if *metaData.BusinessPartnerID == *buyerSellerDetection.Buyer && *metaData.BusinessPartnerID != *buyerSellerDetection.Seller {
-		psdc.Header.BuyerOrSeller = "Buyer"
-		f.l.JsonParseOut(psdc.Header.BuyerOrSeller)
+		buyerSellerDetection.BuyerOrSeller = "Buyer"
+		f.l.JsonParseOut(buyerSellerDetection.BuyerOrSeller)
 	} else if *metaData.BusinessPartnerID != *buyerSellerDetection.Buyer && *metaData.BusinessPartnerID == *buyerSellerDetection.Seller {
-		psdc.Header.BuyerOrSeller = "Seller"
-		f.l.JsonParseOut(psdc.Header.BuyerOrSeller)
+		buyerSellerDetection.BuyerOrSeller = "Seller"
+		f.l.JsonParseOut(buyerSellerDetection.BuyerOrSeller)
 	} else {
 		return nil, fmt.Errorf("business_partnerがBuyerまたはSellerと一致しません")
 	}
 	return buyerSellerDetection, nil
 }
 
+func (f *SubFunction) CalculateOrderID(
+	sdc *api_input_reader.SDC,
+	psdc *api_processing_data_formatter.SDC,
+) (*api_processing_data_formatter.CalculateOrderID, error) {
+	metaData := psdc.MetaData
+	dataKey, err := psdc.ConvertToCalculateOrderIDKey()
+	if err != nil {
+		return nil, err
+	}
+
+	dataKey.ServiceLabel = metaData.ServiceLabel
+
+	rows, err := f.db.Query(
+		`SELECT ServiceLabel, FieldNameWithNumberRange, LatestNumber
+		FROM DataPlatformMastersAndTransactionsMysqlKube.data_platform_number_range_latest_number_data
+		WHERE (ServiceLabel, FieldNameWithNumberRange) = (?, ?);`, dataKey.ServiceLabel, dataKey.FieldNameWithNumberRange,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	dataQueryGets, err := psdc.ConvertToCalculateOrderIDQueryGets(sdc, rows)
+	if err != nil {
+		return nil, err
+	}
+
+	calculateOrderID := CalculateOrderID(*dataQueryGets.OrderIDLatestNumber)
+
+	data, err := psdc.ConvertToCalculateOrderID(calculateOrderID)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, err
+}
+
+func CalculateOrderID(latestNumber int) *int {
+	res := latestNumber + 1
+	return &res
+}
+
 func (f *SubFunction) CreateSdc(
 	sdc *api_input_reader.SDC,
 	psdc *api_processing_data_formatter.SDC,
 	osdc *dpfm_api_output_formatter.SDC,
-	buyerSellerDetection *api_processing_data_formatter.BuyerSellerDetection,
 ) error {
-	var headerBPCustomerSupplier *api_processing_data_formatter.HeaderBPCustomerSupplier
-	var calculateOrderID *api_processing_data_formatter.CalculateOrderID
-	var headerPartnerFunction *[]api_processing_data_formatter.HeaderPartnerFunction
-	var headerPartnerBPGeneral *[]api_processing_data_formatter.HeaderPartnerBPGeneral
-	var headerPartnerPlant *[]api_processing_data_formatter.HeaderPartnerPlant
 	var err error
 	var e error
-
-	psdc.Header.Buyer = sdc.Orders.Buyer
-	psdc.Header.Seller = sdc.Orders.Seller
 
 	wg := sync.WaitGroup{}
 	wg.Add(3)
@@ -99,54 +129,45 @@ func (f *SubFunction) CreateSdc(
 	go func(wg *sync.WaitGroup) {
 		defer wg.Done()
 		// 1-1. ビジネスパートナ 得意先データ/仕入先データ の取得
-		headerBPCustomerSupplier, e = f.HeaderBPCustomerSupplier(buyerSellerDetection, sdc, psdc)
+		psdc.HeaderBPCustomerSupplier, e = f.HeaderBPCustomerSupplier(sdc, psdc)
 		if e != nil {
 			err = e
 			return
 		}
-		psdc.HeaderBPCustomerSupplier = headerBPCustomerSupplier
 	}(&wg)
 
 	go func(wg *sync.WaitGroup) {
 		defer wg.Done()
 		// 1-2. OrderID
-		calculateOrderID, e = f.CalculateOrderID(buyerSellerDetection, sdc, psdc)
+		psdc.CalculateOrderID, e = f.CalculateOrderID(sdc, psdc)
 		if e != nil {
 			err = e
 			return
 		}
-		psdc.CalculateOrderID = calculateOrderID
 	}(&wg)
 
 	go func(wg *sync.WaitGroup) {
 		defer wg.Done()
-		start := time.Now()
 		// 2-1. ビジネスパートナマスタの取引先機能データの取得
-		headerPartnerFunction, e = f.HeaderPartnerFunction(buyerSellerDetection, sdc, psdc)
+		psdc.HeaderPartnerFunction, e = f.HeaderPartnerFunction(sdc, psdc)
 		if e != nil {
 			err = e
 			return
 		}
-		psdc.HeaderPartnerFunction = headerPartnerFunction
-		fmt.Printf("duration: %d [ms]\n", time.Since(start).Milliseconds())
 
 		// 2-2. ビジネスパートナの一般データの取得
-		headerPartnerBPGeneral, e = f.HeaderPartnerBPGeneral(headerPartnerFunction, sdc, psdc)
+		psdc.HeaderPartnerBPGeneral, e = f.HeaderPartnerBPGeneral(sdc, psdc)
 		if e != nil {
 			err = e
 			return
 		}
-		psdc.HeaderPartnerBPGeneral = headerPartnerBPGeneral
-		fmt.Printf("duration: %d [ms]\n", time.Since(start).Milliseconds())
 
 		// 4-1. ビジネスパートナマスタの取引先プラントデータの取得
-		headerPartnerPlant, e = f.HeaderPartnerPlant(buyerSellerDetection, headerPartnerFunction, sdc, psdc)
+		psdc.HeaderPartnerPlant, e = f.HeaderPartnerPlant(sdc, psdc)
 		if e != nil {
 			err = e
 			return
 		}
-		psdc.HeaderPartnerPlant = headerPartnerPlant
-		fmt.Printf("duration: %d [ms]\n", time.Since(start).Milliseconds())
 	}(&wg)
 
 	wg.Wait()
@@ -154,7 +175,7 @@ func (f *SubFunction) CreateSdc(
 		return err
 	}
 
-	osdc, err = f.SetValue(sdc, osdc, buyerSellerDetection, headerBPCustomerSupplier, calculateOrderID, headerPartnerFunction, headerPartnerBPGeneral, headerPartnerPlant)
+	osdc, err = f.SetValue(sdc, psdc, osdc)
 	if err != nil {
 		return err
 	}

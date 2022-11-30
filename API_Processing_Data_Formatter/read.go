@@ -46,12 +46,7 @@ func (*FileReader) ReadSDC(path string) SDC {
 }
 
 func ConvertToSDC() SDC {
-	sdc := SDC{
-		MetaData:                 &MetaData{},
-		Header:                   &Header{},
-		HeaderBPCustomerSupplier: &HeaderBPCustomerSupplier{},
-		BuyerSellerDetection:     &BuyerSellerDetection{},
-	}
+	sdc := SDC{}
 
 	return sdc
 }

@@ -66,11 +66,11 @@ func callProcess(ctx context.Context, db *database.Mysql, msg rabbitmq.RabbitmqM
 	psdc := api_processing_data_formatter.ConvertToSDC()
 	osdc := dpfm_api_output_formatter.ConvertToSDC(msg.Raw())
 
-	buyerSellerDetection, err := subfunc.BuyerSellerDetection(&sdc, &psdc)
+	psdc.BuyerSellerDetection, err = subfunc.BuyerSellerDetection(&sdc, &psdc)
 	if err != nil {
 		return osdc, err
 	}
-	err = subfunc.CreateSdc(&sdc, &psdc, &osdc, buyerSellerDetection)
+	err = subfunc.CreateSdc(&sdc, &psdc, &osdc)
 	if err != nil {
 		return osdc, err
 	}

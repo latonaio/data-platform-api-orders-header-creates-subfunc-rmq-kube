@@ -58,7 +58,6 @@ type SDC struct {
 	BuyerSellerDetection     *BuyerSellerDetection     `json:"BuyerSellerDetection"`
 	HeaderBPCustomerSupplier *HeaderBPCustomerSupplier `json:"HeaderBPCustomerSupplier"`
 	CalculateOrderID         *CalculateOrderID         `json:"CalculateOrderID"`
-	Header                   *Header                   `json:"Header"`
 	HeaderPartnerFunction    *[]HeaderPartnerFunction  `json:"HeaderPartnerFunction"`
 	HeaderPartnerBPGeneral   *[]HeaderPartnerBPGeneral `json:"HeaderPartnerBPGeneral"`
 	HeaderPartnerPlant       *[]HeaderPartnerPlant     `json:"HeaderPartnerPlant"`
@@ -74,14 +73,15 @@ type BuyerSellerDetection struct {
 	ServiceLabel      string `json:"service_label"`
 	Buyer             *int   `json:"Buyer"`
 	Seller            *int   `json:"Seller"`
+	BuyerOrSeller     string `json:"BuyerOrSeller"`
 }
 
 type Header struct {
 	BuyerOrSeller            string
-	Buyer                    *int `json:"Buyer"`
-	Seller                   *int `json:"Seller"`
-	OrderID                  *int `json:"OrderID"`
-	OrderIDLatestNumber      *int
+	Buyer                    *int   `json:"Buyer"`
+	Seller                   *int   `json:"Seller"`
+	OrderID                  *int   `json:"OrderID"`
+	OrderIDLatestNumber      *int   `json:"OrderIDLatestNumber"`
 	Incoterms                string `json:"Incoterms"`
 	PaymentTerms             string `json:"PaymentTerms"`
 	PaymentMethod            string `json:"PaymentMethod"`
@@ -93,19 +93,19 @@ type Header struct {
 }
 
 type HeaderPartner struct {
-	OrderID                 *int   `json:"OrderID"`
-	BusinessPartnerID       *int   `json:"business_partner"`
-	BusinessPartner         *int   `json:"BusinessPartner"`
-	BusinessPartnerFullName string `json:"BusinessPartnerFullName"`
-	BusinessPartnerName     string `json:"BusinessPartnerName"`
-	Country                 string `json:"Country"`
-	Language                string `json:"Language"`
-	Currency                string `json:"Currency"`
-	AddressID               *int   `json:"AddressID"`
-	PartnerCounter          *int   `json:"PartnerCounter"`
-	PartnerFunction         string `json:"PartnerFunction"`
-	DefaultPartner          *bool  `json:"DefaultPartner"`
-	HeaderPartnerPlant      []HeaderPartnerPlant
+	OrderID                 *int                   `json:"OrderID"`
+	BusinessPartnerID       *int                   `json:"business_partner"`
+	BusinessPartner         *int                   `json:"BusinessPartner"`
+	BusinessPartnerFullName string                 `json:"BusinessPartnerFullName"`
+	BusinessPartnerName     string                 `json:"BusinessPartnerName"`
+	Country                 string                 `json:"Country"`
+	Language                string                 `json:"Language"`
+	Currency                string                 `json:"Currency"`
+	AddressID               *int                   `json:"AddressID"`
+	PartnerCounter          *int                   `json:"PartnerCounter"`
+	PartnerFunction         string                 `json:"PartnerFunction"`
+	DefaultPartner          *bool                  `json:"DefaultPartner"`
+	HeaderPartnerPlant      []HeaderPartnerPlant   `json:"HeaderPartnerPlant"`
 	HeaderPartnerPlantKey   *HeaderPartnerPlantKey `json:"HeaderPartnerPlantKey"`
 }
 
@@ -116,19 +116,19 @@ type CalculateOrderIDKey struct {
 
 type CalculateOrderIDQueryGets struct {
 	ServiceLabel             string `json:"service_label"`
-	FieldNameWithNumberRange string
-	OrderIDLatestNumber      *int
+	FieldNameWithNumberRange string `json:"FieldNameWithNumberRange"`
+	OrderIDLatestNumber      *int   `json:"OrderIDLatestNumber"`
 }
 
 type CalculateOrderID struct {
-	OrderIDLatestNumber *int
+	OrderIDLatestNumber *int `json:"OrderIDLatestNumber"`
 	OrderID             *int `json:"OrderID"`
 }
 
 type HeaderBPCustomerSupplier struct {
-	OrderID                  *int `json:"OrderID"`
-	BusinessPartnerID        *int `json:"business_partner"`
-	CustomerOrSupplier       *int
+	OrderID                  *int   `json:"OrderID"`
+	BusinessPartnerID        *int   `json:"business_partner"`
+	CustomerOrSupplier       *int   `json:"CustomerOrSupplier"`
 	Incoterms                string `json:"Incoterms"`
 	PaymentTerms             string `json:"PaymentTerms"`
 	PaymentMethod            string `json:"PaymentMethod"`
@@ -138,7 +138,7 @@ type HeaderBPCustomerSupplier struct {
 type HeaderPartnerFunctionKey struct {
 	OrderID            *int `json:"OrderID"`
 	BusinessPartnerID  *int `json:"business_partner"`
-	CustomerOrSupplier *int
+	CustomerOrSupplier *int `json:"CustomerOrSupplier"`
 }
 
 type HeaderPartnerFunction struct {
@@ -162,9 +162,9 @@ type HeaderPartnerBPGeneral struct {
 }
 
 type HeaderPartnerPlantKey struct {
-	OrderID                        *int `json:"OrderID"`
-	BusinessPartnerID              *int `json:"business_partner"`
-	CustomerOrSupplier             *int
+	OrderID                        *int   `json:"OrderID"`
+	BusinessPartnerID              *int   `json:"business_partner"`
+	CustomerOrSupplier             *int   `json:CustomerOrSupplier`
 	PartnerCounter                 *int   `json:"PartnerCounter"`
 	PartnerFunction                string `json:"PartnerFunction"`
 	PartnerFunctionBusinessPartner *int   `json:"PartnerFunctionBusinessPartner"`

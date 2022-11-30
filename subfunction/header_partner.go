@@ -8,13 +8,13 @@ import (
 )
 
 func (f *SubFunction) HeaderPartnerFunction(
-	buyerSellerDetection *api_processing_data_formatter.BuyerSellerDetection,
 	sdc *api_input_reader.SDC,
 	psdc *api_processing_data_formatter.SDC,
 ) (*[]api_processing_data_formatter.HeaderPartnerFunction, error) {
 	var rows *sql.Rows
 	var err error
 
+	buyerSellerDetection := psdc.BuyerSellerDetection
 	dataKey, err := psdc.ConvertToHeaderPartnerFunctionKey()
 	if err != nil {
 		return nil, err
@@ -22,7 +22,7 @@ func (f *SubFunction) HeaderPartnerFunction(
 
 	dataKey.BusinessPartnerID = buyerSellerDetection.BusinessPartnerID
 
-	if psdc.Header.BuyerOrSeller == "Seller" {
+	if buyerSellerDetection.BuyerOrSeller == "Seller" {
 		dataKey.CustomerOrSupplier = buyerSellerDetection.Buyer
 		rows, err = f.db.Query(
 			`SELECT BusinessPartner, PartnerCounter, PartnerFunction, PartnerFunctionBusinessPartner, DefaultPartner
@@ -32,7 +32,7 @@ func (f *SubFunction) HeaderPartnerFunction(
 		if err != nil {
 			return nil, err
 		}
-	} else if psdc.Header.BuyerOrSeller == "Buyer" {
+	} else if buyerSellerDetection.BuyerOrSeller == "Buyer" {
 		dataKey.CustomerOrSupplier = buyerSellerDetection.Seller
 		rows, err = f.db.Query(
 			`SELECT BusinessPartner, PartnerCounter, PartnerFunction, PartnerFunctionBusinessPartner, DefaultPartner
@@ -54,11 +54,12 @@ func (f *SubFunction) HeaderPartnerFunction(
 }
 
 func (f *SubFunction) HeaderPartnerBPGeneral(
-	headerPartnerFunction *[]api_processing_data_formatter.HeaderPartnerFunction,
 	sdc *api_input_reader.SDC,
 	psdc *api_processing_data_formatter.SDC,
 ) (*[]api_processing_data_formatter.HeaderPartnerBPGeneral, error) {
 	var args []interface{}
+
+	headerPartnerFunction := psdc.HeaderPartnerFunction
 	repeat := strings.Repeat("?,", len(*headerPartnerFunction)-1) + "?"
 	for _, tag := range *headerPartnerFunction {
 		args = append(args, tag.BusinessPartner)

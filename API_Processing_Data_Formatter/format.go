@@ -119,15 +119,7 @@ func (psdc *SDC) ConvertToHeaderBPCustomerSupplier(
 	sdc *api_input_reader.SDC,
 	rows *sql.Rows,
 ) (*HeaderBPCustomerSupplier, error) {
-	pm := &requests.HeaderBPCustomerSupplier{
-		OrderID:                  nil,
-		BusinessPartnerID:        nil,
-		CustomerOrSupplier:       nil,
-		Incoterms:                "",
-		PaymentTerms:             "",
-		PaymentMethod:            "",
-		BPAccountAssignmentGroup: "",
-	}
+	pm := &requests.HeaderBPCustomerSupplier{}
 
 	for i := 0; true; i++ {
 		if !rows.Next() {
@@ -165,11 +157,7 @@ func (psdc *SDC) ConvertToHeaderBPCustomerSupplier(
 
 // HeaderPartner
 func (psdc *SDC) ConvertToHeaderPartnerFunctionKey() (*HeaderPartnerFunctionKey, error) {
-	pm := &requests.HeaderPartnerFunctionKey{
-		OrderID:            nil,
-		BusinessPartnerID:  nil,
-		CustomerOrSupplier: nil,
-	}
+	pm := &requests.HeaderPartnerFunctionKey{}
 	data := pm
 
 	headerPartnerFunctionKey := HeaderPartnerFunctionKey{
@@ -187,14 +175,7 @@ func (psdc *SDC) ConvertToHeaderPartnerFunction(
 ) (*[]HeaderPartnerFunction, error) {
 	var headerPartnerFunction []HeaderPartnerFunction
 
-	pm := &requests.HeaderPartnerFunction{
-		OrderID:           nil,
-		BusinessPartnerID: nil,
-		PartnerCounter:    nil,
-		PartnerFunction:   "",
-		BusinessPartner:   nil,
-		DefaultPartner:    nil,
-	}
+	pm := &requests.HeaderPartnerFunction{}
 
 	for i := 0; true; i++ {
 		if !rows.Next() {

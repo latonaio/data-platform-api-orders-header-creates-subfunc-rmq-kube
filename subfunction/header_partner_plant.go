@@ -8,8 +8,6 @@ import (
 )
 
 func (f *SubFunction) HeaderPartnerPlant(
-	buyerSellerDetection *api_processing_data_formatter.BuyerSellerDetection,
-	headerPartnerFunction *[]api_processing_data_formatter.HeaderPartnerFunction,
 	sdc *api_input_reader.SDC,
 	psdc *api_processing_data_formatter.SDC,
 ) (*[]api_processing_data_formatter.HeaderPartnerPlant, error) {
@@ -17,6 +15,8 @@ func (f *SubFunction) HeaderPartnerPlant(
 	var rows *sql.Rows
 	var err error
 
+	buyerSellerDetection := psdc.BuyerSellerDetection
+	headerPartnerFunction := psdc.HeaderPartnerFunction
 	dataKey, err := psdc.ConvertToHeaderPartnerPlantKey(len(*headerPartnerFunction))
 	if err != nil {
 		return nil, err
@@ -24,9 +24,9 @@ func (f *SubFunction) HeaderPartnerPlant(
 
 	for i, v := range *headerPartnerFunction {
 		(*dataKey)[i].BusinessPartnerID = buyerSellerDetection.BusinessPartnerID
-		if psdc.Header.BuyerOrSeller == "Seller" {
+		if buyerSellerDetection.BuyerOrSeller == "Seller" {
 			(*dataKey)[i].CustomerOrSupplier = buyerSellerDetection.Buyer
-		} else if psdc.Header.BuyerOrSeller == "Buyer" {
+		} else if buyerSellerDetection.BuyerOrSeller == "Buyer" {
 			(*dataKey)[i].CustomerOrSupplier = buyerSellerDetection.Seller
 		}
 		(*dataKey)[i].PartnerCounter = v.PartnerCounter
@@ -45,7 +45,7 @@ func (f *SubFunction) HeaderPartnerPlant(
 			tag.PartnerFunctionBusinessPartner)
 	}
 
-	if psdc.Header.BuyerOrSeller == "Seller" {
+	if buyerSellerDetection.BuyerOrSeller == "Seller" {
 		rows, err = f.db.Query(
 			`SELECT PartnerFunctionBusinessPartner, PartnerFunction, PlantCounter, Plant, DefaultPlant
 				FROM DataPlatformMastersAndTransactionsMysqlKube.data_platform_business_partner_customer_partner_plant_data
@@ -54,7 +54,7 @@ func (f *SubFunction) HeaderPartnerPlant(
 		if err != nil {
 			return nil, err
 		}
-	} else if psdc.Header.BuyerOrSeller == "Buyer" {
+	} else if buyerSellerDetection.BuyerOrSeller == "Buyer" {
 		rows, err = f.db.Query(
 			`SELECT PartnerFunctionBusinessPartner, PartnerFunction, PlantCounter, Plant, DefaultPlant
 				FROM DataPlatformMastersAndTransactionsMysqlKube.data_platform_business_partner_supplier_partner_plant_data
