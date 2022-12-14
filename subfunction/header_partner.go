@@ -66,7 +66,7 @@ func (f *SubFunction) HeaderPartnerBPGeneral(
 	}
 
 	rows, err := f.db.Query(
-		`SELECT BusinessPartner, BusinessPartnerFullName, BusinessPartnerName, Country, Language, Currency, AddressID
+		`SELECT BusinessPartner, BusinessPartnerFullName, BusinessPartnerName, Country, Language, AddressID
 		FROM DataPlatformMastersAndTransactionsMysqlKube.data_platform_business_partner_general_data
 		WHERE BusinessPartner IN ( `+repeat+` );`, args...,
 	)

@@ -1,18 +1,25 @@
 package api_input_reader
 
 type SDC struct {
-	ConnectionKey     string   `json:"connection_key"`
-	Result            bool     `json:"result"`
-	RedisKey          string   `json:"redis_key"`
-	Filepath          string   `json:"filepath"`
-	APIStatusCode     int      `json:"api_status_code"`
-	RuntimeSessionID  string   `json:"runtime_session_id"`
-	BusinessPartnerID *int     `json:"business_partner"`
-	ServiceLabel      string   `json:"service_label"`
-	Orders            Order    `json:"Orders"`
-	APISchema         string   `json:"api_schema"`
-	Accepter          []string `json:"accepter"`
-	Deleted           bool     `json:"deleted"`
+	ConnectionKey         string                `json:"connection_key"`
+	Result                bool                  `json:"result"`
+	RedisKey              string                `json:"redis_key"`
+	Filepath              string                `json:"filepath"`
+	APIStatusCode         int                   `json:"api_status_code"`
+	RuntimeSessionID      string                `json:"runtime_session_id"`
+	BusinessPartnerID     *int                  `json:"business_partner"`
+	ServiceLabel          string                `json:"service_label"`
+	APIType               string                `json:"APIType"`
+	OrdersInputParameters OrdersInputParameters `json:"OrdersInputParameters"`
+	Orders                Order                 `json:"Orders"`
+	APISchema             string                `json:"api_schema"`
+	Accepter              []string              `json:"accepter"`
+	Deleted               bool                  `json:"deleted"`
+}
+
+type OrdersInputParameters struct {
+	ReferenceDocument     *int `json:"ReferenceDocument"`
+	ReferenceDocumentItem *int `json:"ReferenceDocumentItem"`
 }
 
 type Order struct {
@@ -37,7 +44,7 @@ type Order struct {
 	OverallDocReferenceStatus       string          `json:"OverallDocReferenceStatus"`
 	TransactionCurrency             string          `json:"TransactionCurrency"`
 	PricingDate                     *string         `json:"PricingDate"`
-	PriceDetnExchangeRate           *string         `json:"PriceDetnExchangeRate"`
+	PriceDetnExchangeRate           *float32        `json:"PriceDetnExchangeRate"`
 	RequestedDeliveryDate           *string         `json:"RequestedDeliveryDate"`
 	HeaderCompleteDeliveryIsDefined *bool           `json:"HeaderCompleteDeliveryIsDefined"`
 	HeaderBillingBlockReason        *bool           `json:"HeaderBillingBlockReason"`
@@ -48,8 +55,10 @@ type Order struct {
 	ReferenceDocument               *int            `json:"ReferenceDocument"`
 	ReferenceDocumentItem           *int            `json:"ReferenceDocumentItem"`
 	BPAccountAssignmentGroup        string          `json:"BPAccountAssignmentGroup"`
-	AccountingExchangeRate          *string         `json:"AccountingExchangeRate"`
-	BillingDocumentDate             *string         `json:"BillingDocumentDate"`
+	AccountingExchangeRate          *float32        `json:"AccountingExchangeRate"`
+	InvoiceDocumentDate             *string         `json:"InvoiceDocumentDate"`
+	PaymentDueDate                  *string         `json:"PaymentDueDate"`
+	NetPaymentDays                  *int            `json:"NetPaymentDays"`
 	IsExportImportDelivery          *bool           `json:"IsExportImportDelivery"`
 	HeaderText                      string          `json:"HeaderText"`
 	HeaderPartner                   []HeaderPartner `json:"HeaderPartner"`
@@ -145,7 +154,7 @@ type Item struct {
 	NetAmount                                     *float32             `json:"NetAmount"`
 	TaxAmount                                     *float32             `json:"TaxAmount"`
 	GrossAmount                                   *float32             `json:"GrossAmount"`
-	BillingDocumentDate                           *string              `json:"BillingDocumentDate"`
+	InvoiceDocumentDate                           *string              `json:"InvoiceDocumentDate"`
 	ProductionPlantPartnerFunction                string               `json:"ProductionPlantPartnerFunction"`
 	ProductionPlantBusinessPartner                *int                 `json:"ProductionPlantBusinessPartner"`
 	ProductionPlant                               string               `json:"ProductionPlant"`

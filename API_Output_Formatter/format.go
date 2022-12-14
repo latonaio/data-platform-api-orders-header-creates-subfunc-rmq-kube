@@ -12,6 +12,12 @@ func ConvertToHeader(
 ) (*Header, error) {
 	calculateOrderID := psdc.CalculateOrderID
 	headerBPCustomerSupplier := psdc.HeaderBPCustomerSupplier
+	invoiceDocumentDate := psdc.InvoiceDocumentDate
+	paymentDueDate := psdc.PaymentDueDate
+	netPaymentDays := psdc.NetPaymentDays
+	transactionCurrency := psdc.TransactionCurrency
+	priceDetnExchangeRate := psdc.PriceDetnExchangeRate
+	accountingExchangeRate := psdc.AccountingExchangeRate
 
 	header := Header{}
 	inputHeader := sdc.Orders
@@ -34,6 +40,12 @@ func ConvertToHeader(
 	}
 
 	header.OrderID = calculateOrderID.OrderIDLatestNumber
+	header.InvoiceDocumentDate = invoiceDocumentDate.InvoiceDocumentDate
+	header.PaymentDueDate = paymentDueDate.PaymentDueDate
+	header.NetPaymentDays = netPaymentDays.NetPaymentDays
+	header.TransactionCurrency = transactionCurrency.TransactionCurrency
+	header.PriceDetnExchangeRate = priceDetnExchangeRate.PriceDetnExchangeRate
+	header.AccountingExchangeRate = accountingExchangeRate.AccountingExchangeRate
 
 	return &header, nil
 }
@@ -66,7 +78,6 @@ func ConvertToHeaderPartner(
 			BusinessPartnerName:     headerPartnerBPGeneralMap[key].BusinessPartnerName,
 			Country:                 headerPartnerBPGeneralMap[key].Country,
 			Language:                headerPartnerBPGeneralMap[key].Language,
-			Currency:                headerPartnerBPGeneralMap[key].Currency,
 			AddressID:               headerPartnerBPGeneralMap[key].AddressID,
 		})
 	}

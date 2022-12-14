@@ -26,7 +26,7 @@ type SDC struct {
 type Message struct {
 	Header             Header               `json:"Header"`
 	HeaderPartner      []HeaderPartner      `json:"HeaderPartner"`
-	HeaderPartnerPlant []HeaderPartnerPlant `json:"HeaderPartnerPlant`
+	HeaderPartnerPlant []HeaderPartnerPlant `json:"HeaderPartnerPlant"`
 }
 
 type Header struct {
@@ -51,7 +51,7 @@ type Header struct {
 	OverallDocReferenceStatus       string   `json:"OverallDocReferenceStatus"`
 	TransactionCurrency             string   `json:"TransactionCurrency"`
 	PricingDate                     *string  `json:"PricingDate"`
-	PriceDetnExchangeRate           *string  `json:"PriceDetnExchangeRate"`
+	PriceDetnExchangeRate           *float32 `json:"PriceDetnExchangeRate"`
 	RequestedDeliveryDate           *string  `json:"RequestedDeliveryDate"`
 	HeaderCompleteDeliveryIsDefined *bool    `json:"HeaderCompleteDeliveryIsDefined"`
 	HeaderBillingBlockReason        *bool    `json:"HeaderBillingBlockReason"`
@@ -62,8 +62,10 @@ type Header struct {
 	ReferenceDocument               *int     `json:"ReferenceDocument"`
 	ReferenceDocumentItem           *int     `json:"ReferenceDocumentItem"`
 	BPAccountAssignmentGroup        string   `json:"BPAccountAssignmentGroup"`
-	AccountingExchangeRate          *string  `json:"AccountingExchangeRate"`
-	BillingDocumentDate             *string  `json:"BillingDocumentDate"`
+	AccountingExchangeRate          *float32 `json:"AccountingExchangeRate"`
+	InvoiceDocumentDate             string   `json:"InvoiceDocumentDate"`
+	PaymentDueDate                  string   `json:"PaymentDueDate"`
+	NetPaymentDays                  *int     `json:"NetPaymentDays"`
 	IsExportImportDelivery          *bool    `json:"IsExportImportDelivery"`
 	HeaderText                      string   `json:"HeaderText"`
 }
@@ -163,7 +165,7 @@ type Item struct {
 	NetAmount                                     float32 `json:"NetAmount"`
 	TaxAmount                                     float32 `json:"TaxAmount"`
 	GrossAmount                                   float32 `json:"GrossAmount"`
-	BillingDocumentDate                           string  `json:"BillingDocumentDate"`
+	InvoiceDocumentDate                           string  `json:"InvoiceDocumentDate"`
 	ProductionPlantPartnerFunction                string  `json:"ProductionPlantPartnerFunction"`
 	ProductionPlantBusinessPartner                int     `json:"ProductionPlantBusinessPartner"`
 	ProductionPlant                               string  `json:"ProductionPlant"`

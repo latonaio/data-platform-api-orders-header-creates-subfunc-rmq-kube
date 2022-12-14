@@ -54,18 +54,48 @@ type EC_MC struct {
 }
 
 type SDC struct {
-	MetaData                 *MetaData                 `json:"MetaData"`
-	BuyerSellerDetection     *BuyerSellerDetection     `json:"BuyerSellerDetection"`
-	HeaderBPCustomerSupplier *HeaderBPCustomerSupplier `json:"HeaderBPCustomerSupplier"`
-	CalculateOrderID         *CalculateOrderID         `json:"CalculateOrderID"`
-	HeaderPartnerFunction    *[]HeaderPartnerFunction  `json:"HeaderPartnerFunction"`
-	HeaderPartnerBPGeneral   *[]HeaderPartnerBPGeneral `json:"HeaderPartnerBPGeneral"`
-	HeaderPartnerPlant       *[]HeaderPartnerPlant     `json:"HeaderPartnerPlant"`
+	OrderRegistrationType     *OrderRegistrationType     `json:"OrderRegistrationType"`
+	OrderReferenceType        *OrderReferenceType        `json:"OrderReferenceType"`
+	MetaData                  *MetaData                  `json:"MetaData"`
+	BuyerSellerDetection      *BuyerSellerDetection      `json:"BuyerSellerDetection"`
+	HeaderBPCustomer          *HeaderBPCustomer          `json:"HeaderBPCustomer"`
+	HeaderBPSupplier          *HeaderBPSupplier          `json:"HeaderBPSupplier"`
+	HeaderBPCustomerSupplier  *HeaderBPCustomerSupplier  `json:"HeaderBPCustomerSupplier"`
+	CalculateOrderID          *CalculateOrderID          `json:"CalculateOrderID"`
+	PaymentTerms              *[]PaymentTerms            `json:"PaymentTerms"`
+	InvoiceDocumentDate       *InvoiceDocumentDate       `json:"InvoiceDocumentDate"`
+	PaymentDueDate            *PaymentDueDate            `json:"PaymentDueDate"`
+	NetPaymentDays            *NetPaymentDays            `json:"NetPaymentDays"`
+	OverallDocReferenceStatus *OverallDocReferenceStatus `json:"OverallDocReferenceStatus"`
+	PriceDetnExchangeRate     *PriceDetnExchangeRate     `json:"PriceDetnExchangeRate"`
+	AccountingExchangeRate    *AccountingExchangeRate    `json:"AccountingExchangeRate"`
+	TransactionCurrency       *TransactionCurrency       `json:"TransactionCurrency"`
+	HeaderPartnerFunction     *[]HeaderPartnerFunction   `json:"HeaderPartnerFunction"`
+	HeaderPartnerBPGeneral    *[]HeaderPartnerBPGeneral  `json:"HeaderPartnerBPGeneral"`
+	HeaderPartnerPlant        *[]HeaderPartnerPlant      `json:"HeaderPartnerPlant"`
 }
 
+// Initializer
 type MetaData struct {
 	BusinessPartnerID *int   `json:"business_partner"`
 	ServiceLabel      string `json:"service_label"`
+}
+
+type OrderRegistrationType struct {
+	ReferenceDocument     *int   `json:"ReferenceDocument"`
+	ReferenceDocumentItem *int   `json:"ReferenceDocumentItem"`
+	RegistrationType      string `json:"RegistrationType"`
+}
+
+type OrderReferenceTypeQueryGets struct {
+	ServiceLabel             *string `json:"ServiceLabel"`
+	FieldNameWithNumberRange *string `json:"FieldNameWithNumberRange"`
+	NumberRangeFrom          *int    `json:"NumberRangeFrom"`
+	NumberRangeTo            *int    `json:"NumberRangeTo"`
+}
+
+type OrderReferenceType struct {
+	ServiceLabel *string `json:"ServiceLabel"`
 }
 
 type BuyerSellerDetection struct {
@@ -76,37 +106,38 @@ type BuyerSellerDetection struct {
 	BuyerOrSeller     string `json:"BuyerOrSeller"`
 }
 
-type Header struct {
-	BuyerOrSeller            string
-	Buyer                    *int   `json:"Buyer"`
-	Seller                   *int   `json:"Seller"`
-	OrderID                  *int   `json:"OrderID"`
-	OrderIDLatestNumber      *int   `json:"OrderIDLatestNumber"`
-	Incoterms                string `json:"Incoterms"`
-	PaymentTerms             string `json:"PaymentTerms"`
-	PaymentMethod            string `json:"PaymentMethod"`
-	BPAccountAssignmentGroup string `json:"BPAccountAssignmentGroup"`
-	// HeaderPartner            []HeaderPartner
-	// HeaderPartnerFunctionKey *HeaderPartnerFunctionKey `json:"HeaderPartnerFunctionKey"`
-	// HeaderPartnerFunction    *HeaderPartnerFunction    `json:"HeaderPartnerFunction"`
-	// HeaderPartnerBPGeneral   *HeaderPartnerBPGeneral   `json:"HeaderPartnerBPGeneral"`
+// Header
+type HeaderBPCustomer struct {
+	OrderID                  *int    `json:"OrderID"`
+	BusinessPartnerID        int     `json:"business_partner"`
+	Customer                 int     `json:"Customer"`
+	TransactionCurrency      *string `json:"TransactionCurrency"`
+	Incoterms                *string `json:"Incoterms"`
+	PaymentTerms             *string `json:"PaymentTerms"`
+	PaymentMethod            *string `json:"PaymentMethod"`
+	BPAccountAssignmentGroup *string `json:"BPAccountAssignmentGroup"`
 }
 
-type HeaderPartner struct {
-	OrderID                 *int                   `json:"OrderID"`
-	BusinessPartnerID       *int                   `json:"business_partner"`
-	BusinessPartner         *int                   `json:"BusinessPartner"`
-	BusinessPartnerFullName string                 `json:"BusinessPartnerFullName"`
-	BusinessPartnerName     string                 `json:"BusinessPartnerName"`
-	Country                 string                 `json:"Country"`
-	Language                string                 `json:"Language"`
-	Currency                string                 `json:"Currency"`
-	AddressID               *int                   `json:"AddressID"`
-	PartnerCounter          *int                   `json:"PartnerCounter"`
-	PartnerFunction         string                 `json:"PartnerFunction"`
-	DefaultPartner          *bool                  `json:"DefaultPartner"`
-	HeaderPartnerPlant      []HeaderPartnerPlant   `json:"HeaderPartnerPlant"`
-	HeaderPartnerPlantKey   *HeaderPartnerPlantKey `json:"HeaderPartnerPlantKey"`
+type HeaderBPSupplier struct {
+	OrderID                  *int    `json:"OrderID"`
+	BusinessPartnerID        int     `json:"business_partner"`
+	Supplier                 int     `json:"Supplier"`
+	TransactionCurrency      *string `json:"TransactionCurrency"`
+	Incoterms                *string `json:"Incoterms"`
+	PaymentTerms             *string `json:"PaymentTerms"`
+	PaymentMethod            *string `json:"PaymentMethod"`
+	BPAccountAssignmentGroup *string `json:"BPAccountAssignmentGroup"`
+}
+
+type HeaderBPCustomerSupplier struct {
+	OrderID                  *int    `json:"OrderID"`
+	BusinessPartnerID        int     `json:"business_partner"`
+	CustomerOrSupplier       int     `json:"CustomerOrSupplier"`
+	TransactionCurrency      *string `json:"TransactionCurrency"`
+	Incoterms                *string `json:"Incoterms"`
+	PaymentTerms             *string `json:"PaymentTerms"`
+	PaymentMethod            *string `json:"PaymentMethod"`
+	BPAccountAssignmentGroup *string `json:"BPAccountAssignmentGroup"`
 }
 
 type CalculateOrderIDKey struct {
@@ -125,14 +156,49 @@ type CalculateOrderID struct {
 	OrderID             *int `json:"OrderID"`
 }
 
-type HeaderBPCustomerSupplier struct {
-	OrderID                  *int   `json:"OrderID"`
-	BusinessPartnerID        *int   `json:"business_partner"`
-	CustomerOrSupplier       *int   `json:"CustomerOrSupplier"`
-	Incoterms                string `json:"Incoterms"`
-	PaymentTerms             string `json:"PaymentTerms"`
-	PaymentMethod            string `json:"PaymentMethod"`
-	BPAccountAssignmentGroup string `json:"BPAccountAssignmentGroup"`
+type PaymentTermsKey struct {
+	PaymentTerms *string `json:"PaymentTerms"`
+}
+
+type PaymentTerms struct {
+	PaymentTerms                string `json:"PaymentTerms"`
+	BaseDate                    int    `json:"BaseDate"`
+	BaseDateCalcAddMonth        *int   `json:"BaseDateCalcAddMonth"`
+	BaseDateCalcFixedDate       *int   `json:"BaseDateCalcFixedDate"`
+	PaymentDueDateCalcAddMonth  *int   `json:"PaymentDueDateCalcAddMonth"`
+	PaymentDueDateCalcFixedDate *int   `json:"PaymentDueDateCalcFixedDate"`
+}
+
+type InvoiceDocumentDate struct {
+	RequestedDeliveryDate string `json:"RequestedDeliveryDate"`
+	InvoiceDocumentDate   string `json:"InvoiceDocumentDate"`
+}
+
+type PaymentDueDate struct {
+	InvoiceDocumentDate string `json:"InvoiceDocumentDate"`
+	PaymentDueDate      string `json:"PaymentDueDate"`
+}
+
+type NetPaymentDays struct {
+	InvoiceDocumentDate string `json:"InvoiceDocumentDate"`
+	PaymentDueDate      string `json:"PaymentDueDate"`
+	NetPaymentDays      *int   `json:"NetPaymentDays"`
+}
+
+type OverallDocReferenceStatus struct {
+	OverallDocReferenceStatus string `json:"OverallDocReferenceStatus"`
+}
+
+type PriceDetnExchangeRate struct {
+	PriceDetnExchangeRate *float32 `json:"PriceDetnExchangeRate"`
+}
+
+type AccountingExchangeRate struct {
+	AccountingExchangeRate *float32 `json:"AccountingExchangeRate"`
+}
+
+type TransactionCurrency struct {
+	TransactionCurrency string `json:"TransactionCurrency"`
 }
 
 type HeaderPartnerFunctionKey struct {
@@ -157,14 +223,13 @@ type HeaderPartnerBPGeneral struct {
 	BusinessPartnerName     string `json:"BusinessPartnerName"`
 	Country                 string `json:"Country"`
 	Language                string `json:"Language"`
-	Currency                string `json:"Currency"`
 	AddressID               *int   `json:"AddressID"`
 }
 
 type HeaderPartnerPlantKey struct {
 	OrderID                        *int   `json:"OrderID"`
 	BusinessPartnerID              *int   `json:"business_partner"`
-	CustomerOrSupplier             *int   `json:CustomerOrSupplier`
+	CustomerOrSupplier             *int   `json:"CustomerOrSupplier"`
 	PartnerCounter                 *int   `json:"PartnerCounter"`
 	PartnerFunction                string `json:"PartnerFunction"`
 	PartnerFunctionBusinessPartner *int   `json:"PartnerFunctionBusinessPartner"`

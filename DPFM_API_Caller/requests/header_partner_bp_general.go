@@ -8,6 +8,5 @@ type HeaderPartnerBPGeneral struct {
 	BusinessPartnerName            string `json:"BusinessPartnerName"`
 	Country                        string `json:"Country"`
 	Language                       string `json:"Language"`
-	Currency                       string `json:"Currency"`
 	AddressID                      *int   `json:"AddressID"`
 }
