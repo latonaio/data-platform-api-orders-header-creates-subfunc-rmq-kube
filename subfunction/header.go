@@ -4,11 +4,32 @@ import (
 	api_input_reader "data-platform-api-orders-headers-creates-subfunc-rmq-kube/API_Input_Reader"
 	api_processing_data_formatter "data-platform-api-orders-headers-creates-subfunc-rmq-kube/API_Processing_Data_Formatter"
 	"database/sql"
+	"fmt"
 	"sort"
 	"time"
 
 	"golang.org/x/xerrors"
 )
+
+func (f *SubFunction) BuyerSellerDetection(
+	sdc *api_input_reader.SDC,
+	psdc *api_processing_data_formatter.SDC,
+) (*api_processing_data_formatter.BuyerSellerDetection, error) {
+	var buyerOrSeller string
+	metaData := psdc.MetaData
+
+	if *metaData.BusinessPartnerID == *sdc.Orders.Buyer && *metaData.BusinessPartnerID != *sdc.Orders.Seller {
+		buyerOrSeller = "Buyer"
+	} else if *metaData.BusinessPartnerID != *sdc.Orders.Buyer && *metaData.BusinessPartnerID == *sdc.Orders.Seller {
+		buyerOrSeller = "Seller"
+	} else {
+		return nil, fmt.Errorf("business_partnerがBuyerまたはSellerと一致しません")
+	}
+
+	buyerSellerDetection := psdc.ConvertToBuyerSellerDetection(sdc, buyerOrSeller)
+
+	return buyerSellerDetection, nil
+}
 
 func (f *SubFunction) HeaderBPCustomerSupplier(
 	sdc *api_input_reader.SDC,
@@ -27,7 +48,7 @@ func (f *SubFunction) HeaderBPCustomerSupplier(
 		if err != nil {
 			return nil, err
 		}
-		psdc.HeaderBPCustomer, err = psdc.ConvertToHeaderBPCustomer(sdc, rows)
+		psdc.HeaderBPCustomer, err = psdc.ConvertToHeaderBPCustomer(rows)
 		if err != nil {
 			return nil, err
 		}
@@ -40,7 +61,7 @@ func (f *SubFunction) HeaderBPCustomerSupplier(
 		if err != nil {
 			return nil, err
 		}
-		psdc.HeaderBPSupplier, err = psdc.ConvertToHeaderBPSupplier(sdc, rows)
+		psdc.HeaderBPSupplier, err = psdc.ConvertToHeaderBPSupplier(rows)
 		if err != nil {
 			return nil, err
 		}
@@ -53,7 +74,7 @@ func (f *SubFunction) HeaderBPCustomerSupplier(
 		if err != nil {
 			return nil, err
 		}
-		psdc.HeaderBPSupplier, err = psdc.ConvertToHeaderBPSupplier(sdc, rows)
+		psdc.HeaderBPSupplier, err = psdc.ConvertToHeaderBPSupplier(rows)
 		if err != nil {
 			return nil, err
 		}
@@ -66,16 +87,13 @@ func (f *SubFunction) HeaderBPCustomerSupplier(
 		if err != nil {
 			return nil, err
 		}
-		psdc.HeaderBPCustomer, err = psdc.ConvertToHeaderBPCustomer(sdc, rows)
+		psdc.HeaderBPCustomer, err = psdc.ConvertToHeaderBPCustomer(rows)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	data, err := psdc.ConvertToHeaderBPCustomerSupplier(sdc)
-	if err != nil {
-		return nil, err
-	}
+	data := psdc.ConvertToHeaderBPCustomerSupplier()
 
 	return data, err
 }
@@ -85,10 +103,7 @@ func (f *SubFunction) CalculateOrderID(
 	psdc *api_processing_data_formatter.SDC,
 ) (*api_processing_data_formatter.CalculateOrderID, error) {
 	metaData := psdc.MetaData
-	dataKey, err := psdc.ConvertToCalculateOrderIDKey()
-	if err != nil {
-		return nil, err
-	}
+	dataKey := psdc.ConvertToCalculateOrderIDKey()
 
 	dataKey.ServiceLabel = metaData.ServiceLabel
 
@@ -101,24 +116,17 @@ func (f *SubFunction) CalculateOrderID(
 		return nil, err
 	}
 
-	dataQueryGets, err := psdc.ConvertToCalculateOrderIDQueryGets(sdc, rows)
+	dataQueryGets, err := psdc.ConvertToCalculateOrderIDQueryGets(rows)
 	if err != nil {
 		return nil, err
 	}
 
-	calculateOrderID := CalculateOrderID(*dataQueryGets.OrderIDLatestNumber)
+	orderIDLatestNumber := dataQueryGets.OrderIDLatestNumber
+	orderID := *dataQueryGets.OrderIDLatestNumber + 1
 
-	data, err := psdc.ConvertToCalculateOrderID(calculateOrderID)
-	if err != nil {
-		return nil, err
-	}
+	data := psdc.ConvertToCalculateOrderID(orderIDLatestNumber, orderID)
 
 	return data, err
-}
-
-func CalculateOrderID(latestNumber int) *int {
-	res := latestNumber + 1
-	return &res
 }
 
 func (f *SubFunction) InvoiceDocumentDate(
@@ -126,10 +134,7 @@ func (f *SubFunction) InvoiceDocumentDate(
 	psdc *api_processing_data_formatter.SDC,
 ) (*api_processing_data_formatter.InvoiceDocumentDate, error) {
 
-	dataKey, err := psdc.ConvertToPaymentTermsKey()
-	if err != nil {
-		return nil, err
-	}
+	dataKey := psdc.ConvertToPaymentTermsKey()
 
 	dataKey.PaymentTerms = psdc.HeaderBPCustomerSupplier.PaymentTerms
 
@@ -142,35 +147,26 @@ func (f *SubFunction) InvoiceDocumentDate(
 		return nil, err
 	}
 
-	psdc.PaymentTerms, err = psdc.ConvertToPaymentTerms(sdc, rows)
+	psdc.PaymentTerms, err = psdc.ConvertToPaymentTerms(rows)
 	if err != nil {
 		return nil, err
 	}
 
 	if sdc.Orders.InvoiceDocumentDate != nil {
 		if *sdc.Orders.InvoiceDocumentDate != "" {
-			data, err := psdc.ConvertToInvoiceDocumentDate(sdc)
-			if err != nil {
-				return nil, err
-			}
+			data := psdc.ConvertToInvoiceDocumentDate(sdc)
 			return data, nil
 		}
 	}
 
-	requestedDeliveryDate, err := psdc.ConvertToRequestedDeliveryDate(sdc)
-	if err != nil {
-		return nil, err
-	}
+	requestedDeliveryDate := psdc.ConvertToRequestedDeliveryDate(sdc)
 
 	calculateInvoiceDocumentDate, err := CalculateInvoiceDocumentDate(psdc, requestedDeliveryDate.RequestedDeliveryDate, psdc.PaymentTerms)
 	if err != nil {
 		return nil, err
 	}
 
-	data, err := psdc.ConvertToCaluculateInvoiceDocumentDate(sdc, calculateInvoiceDocumentDate)
-	if err != nil {
-		return nil, err
-	}
+	data := psdc.ConvertToCaluculateInvoiceDocumentDate(sdc, calculateInvoiceDocumentDate)
 
 	return data, err
 }
@@ -219,10 +215,7 @@ func (f *SubFunction) PaymentDueDate(
 
 	if sdc.Orders.PaymentDueDate != nil {
 		if *sdc.Orders.PaymentDueDate != "" {
-			data, err := psdc.ConvertToPaymentDueDate(sdc)
-			if err != nil {
-				return nil, err
-			}
+			data := psdc.ConvertToPaymentDueDate(sdc)
 			return data, nil
 		}
 	}
@@ -232,10 +225,7 @@ func (f *SubFunction) PaymentDueDate(
 		return nil, err
 	}
 
-	data, err := psdc.ConvertToCaluculatePaymentDueDate(sdc, calculatePaymentDueDate)
-	if err != nil {
-		return nil, err
-	}
+	data := psdc.ConvertToCaluculatePaymentDueDate(calculatePaymentDueDate)
 
 	return data, err
 }
@@ -260,7 +250,7 @@ func CalculatePaymentDueDate(
 		day = 31
 	}
 	for i, v := range *paymentTerms {
-		if day == *v.BaseDateCalcFixedDate {
+		if day <= *v.BaseDateCalcFixedDate {
 			t = time.Date(t.Year(), t.Month()+time.Month(*v.PaymentDueDateCalcAddMonth)+1, 0, 0, 0, 0, 0, time.UTC)
 			if *v.PaymentDueDateCalcFixedDate == 31 {
 				t = time.Date(t.Year(), t.Month()+1, 0, 0, 0, 0, 0, time.UTC)
@@ -270,7 +260,12 @@ func CalculatePaymentDueDate(
 			break
 		}
 		if i == len(*paymentTerms)-1 {
-			return "", xerrors.Errorf("入力ファイルの'InvoiceDocumentDate'の値が不適切です。")
+			t = time.Date(t.Year(), t.Month()+time.Month(*v.PaymentDueDateCalcAddMonth)+2, 0, 0, 0, 0, 0, time.UTC)
+			if *v.PaymentDueDateCalcFixedDate == 31 {
+				t = time.Date(t.Year(), t.Month()+1, 0, 0, 0, 0, 0, time.UTC)
+			} else {
+				t = time.Date(t.Year(), t.Month(), *v.PaymentDueDateCalcFixedDate, 0, 0, 0, 0, time.UTC)
+			}
 		}
 	}
 
@@ -285,10 +280,7 @@ func (f *SubFunction) NetPaymentDays(
 ) (*api_processing_data_formatter.NetPaymentDays, error) {
 
 	if sdc.Orders.NetPaymentDays != nil {
-		data, err := psdc.ConvertToNetPaymentDays(sdc)
-		if err != nil {
-			return nil, err
-		}
+		data := psdc.ConvertToNetPaymentDays(sdc)
 		return data, nil
 	}
 
@@ -297,10 +289,7 @@ func (f *SubFunction) NetPaymentDays(
 		return nil, err
 	}
 
-	data, err := psdc.ConvertToCaluculateNetPaymentDays(sdc, calculateNetPaymentDays)
-	if err != nil {
-		return nil, err
-	}
+	data := psdc.ConvertToCaluculateNetPaymentDays(calculateNetPaymentDays)
 
 	return data, err
 }
@@ -329,46 +318,44 @@ func CalculateNetPaymentDays(
 func (f *SubFunction) OverallDocReferenceStatus(
 	psdc *api_processing_data_formatter.SDC,
 ) (*api_processing_data_formatter.OverallDocReferenceStatus, error) {
-	res := psdc.OrderReferenceType.ServiceLabel
-	data := &api_processing_data_formatter.OverallDocReferenceStatus{}
-	var err error
+	var overallDocReferenceStatus string
+	serviceLabel := psdc.OrderReferenceType.ServiceLabel
 
-	if res != nil {
-		if *res == "QUOTATIONS" {
-			data, err = psdc.ConvertToOverallDocReferenceStatus("QT")
-			if err != nil {
-				return nil, err
-			}
-		} else if *res == "INQUIRIES" {
-			data, err = psdc.ConvertToOverallDocReferenceStatus("IN")
-			if err != nil {
-				return nil, err
-			}
-		} else if *res == "PURCHASE_REQUISITION" {
-			data, err = psdc.ConvertToOverallDocReferenceStatus("PR")
-			if err != nil {
-				return nil, err
-			}
-		}
+	if serviceLabel == "QUOTATIONS" {
+		overallDocReferenceStatus = "QT"
+	} else if serviceLabel == "INQUIRIES" {
+		overallDocReferenceStatus = "IN"
+	} else if serviceLabel == "PURCHASE_REQUISITION" {
+		overallDocReferenceStatus = "PR"
 	}
 
+	data := psdc.ConvertToOverallDocReferenceStatus(overallDocReferenceStatus)
+
 	return data, nil
+}
+
+func (f *SubFunction) PricingDate(
+	sdc *api_input_reader.SDC,
+	psdc *api_processing_data_formatter.SDC,
+) *api_processing_data_formatter.PricingDate {
+	var data *api_processing_data_formatter.PricingDate
+
+	if sdc.Orders.PricingDate != nil {
+		if *sdc.Orders.PricingDate != "" {
+			data = psdc.ConvertToPricingDate(*sdc.Orders.PricingDate)
+		}
+	} else {
+		data = psdc.ConvertToPricingDate(GetDateStr())
+	}
+
+	return data
 }
 
 func (f *SubFunction) PriceDetnExchangeRate(
 	sdc *api_input_reader.SDC,
 	psdc *api_processing_data_formatter.SDC,
 ) (*api_processing_data_formatter.PriceDetnExchangeRate, error) {
-	inputPriceDetnExchangeRate := sdc.Orders.PriceDetnExchangeRate
-	data := &api_processing_data_formatter.PriceDetnExchangeRate{}
-	var err error
-
-	if inputPriceDetnExchangeRate != nil {
-		data, err = psdc.ConvertToPriceDetnExchangeRate(inputPriceDetnExchangeRate)
-		if err != nil {
-			return nil, err
-		}
-	}
+	data := psdc.ConvertToPriceDetnExchangeRate(sdc)
 
 	return data, nil
 }
@@ -377,16 +364,7 @@ func (f *SubFunction) AccountingExchangeRate(
 	sdc *api_input_reader.SDC,
 	psdc *api_processing_data_formatter.SDC,
 ) (*api_processing_data_formatter.AccountingExchangeRate, error) {
-	inputAccountingExchangeRate := sdc.Orders.AccountingExchangeRate
-	data := &api_processing_data_formatter.AccountingExchangeRate{}
-	var err error
-
-	if inputAccountingExchangeRate != nil {
-		data, err = psdc.ConvertToAccountingExchangeRate(inputAccountingExchangeRate)
-		if err != nil {
-			return nil, err
-		}
-	}
+	data := psdc.ConvertToAccountingExchangeRate(sdc)
 
 	return data, nil
 }
@@ -410,10 +388,87 @@ func (f *SubFunction) TransactionCurrency(
 	psdc *api_processing_data_formatter.SDC,
 ) (*api_processing_data_formatter.TransactionCurrency, error) {
 
-	data, err := psdc.ConvertToTransactionCurrency()
-	if err != nil {
-		return nil, err
+	data := psdc.ConvertToTransactionCurrency()
+
+	return data, nil
+}
+
+func GetDateStr() string {
+	day := time.Now()
+	return day.Format("2006-01-02")
+}
+
+func (f *SubFunction) TotalNetAmount(
+	sdc *api_input_reader.SDC,
+	psdc *api_processing_data_formatter.SDC,
+) (*api_processing_data_formatter.TotalNetAmount, error) {
+	var totalNetAmount float32 = 0
+
+	netAmount := psdc.NetAmount
+
+	for _, v := range *netAmount {
+		if v.NetAmount != nil {
+			totalNetAmount += *v.NetAmount
+		}
 	}
+
+	if sdc.Orders.TotalNetAmount != nil {
+		if *sdc.Orders.TotalNetAmount != totalNetAmount {
+			return nil, xerrors.Errorf("入力ファイルのTotalNetAmountと計算結果が一致しません。")
+		}
+	}
+
+	data := psdc.ConvertToTotalNetAmount(totalNetAmount)
+
+	return data, nil
+}
+
+func (f *SubFunction) TotalTaxAmount(
+	sdc *api_input_reader.SDC,
+	psdc *api_processing_data_formatter.SDC,
+) (*api_processing_data_formatter.TotalTaxAmount, error) {
+	var totalTaxAmount float32 = 0
+
+	taxAmount := psdc.TaxAmount
+
+	for _, v := range *taxAmount {
+		if v.TaxAmount != nil {
+			totalTaxAmount += *v.TaxAmount
+		}
+	}
+
+	if sdc.Orders.TotalTaxAmount != nil {
+		if *sdc.Orders.TotalTaxAmount != totalTaxAmount {
+			return nil, xerrors.Errorf("入力ファイルのTotalTaxAmountと計算結果が一致しません。")
+		}
+	}
+
+	data := psdc.ConvertToTotalTaxAmount(totalTaxAmount)
+
+	return data, nil
+}
+
+func (f *SubFunction) TotalGrossAmount(
+	sdc *api_input_reader.SDC,
+	psdc *api_processing_data_formatter.SDC,
+) (*api_processing_data_formatter.TotalGrossAmount, error) {
+	var totalGrossAmount float32 = 0
+
+	grossAmount := psdc.GrossAmount
+
+	for _, v := range *grossAmount {
+		if v.GrossAmount != nil {
+			totalGrossAmount += *v.GrossAmount
+		}
+	}
+
+	if sdc.Orders.TotalGrossAmount != nil {
+		if *sdc.Orders.TotalGrossAmount != totalGrossAmount {
+			return nil, xerrors.Errorf("入力ファイルのTotalGrossAmountと計算結果が一致しません。")
+		}
+	}
+
+	data := psdc.ConvertToTotalGrossAmount(totalGrossAmount)
 
 	return data, nil
 }

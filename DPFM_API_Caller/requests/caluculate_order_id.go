@@ -1,6 +1,6 @@
 package requests
 
 type CalculateOrderID struct {
-	OrderIDLatestNumber *int
-	OrderID             *int `json:"OrderID"`
+	OrderIDLatestNumber *int `json:"OrderIDLatestNumber"`
+	OrderID             int  `json:"OrderID"`
 }

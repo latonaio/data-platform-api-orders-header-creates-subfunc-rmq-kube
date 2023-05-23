@@ -5,7 +5,6 @@ import (
 	api_input_reader "data-platform-api-orders-headers-creates-subfunc-rmq-kube/API_Input_Reader"
 	dpfm_api_output_formatter "data-platform-api-orders-headers-creates-subfunc-rmq-kube/API_Output_Formatter"
 	api_processing_data_formatter "data-platform-api-orders-headers-creates-subfunc-rmq-kube/API_Processing_Data_Formatter"
-	"fmt"
 	"sync"
 
 	database "github.com/latonaio/golang-mysql-network-connector"
@@ -30,72 +29,19 @@ func NewSubFunction(ctx context.Context, db *database.Mysql, l *logger.Logger) *
 func (f *SubFunction) MetaData(
 	sdc *api_input_reader.SDC,
 	psdc *api_processing_data_formatter.SDC,
-) (*api_processing_data_formatter.MetaData, error) {
-	var err error
-	var metaData *api_processing_data_formatter.MetaData
+) *api_processing_data_formatter.MetaData {
+	metaData := psdc.ConvertToMetaData(sdc)
 
-	metaData, err = psdc.ConvertToMetaData(sdc)
-	if err != nil {
-		return nil, err
-	}
-
-	return metaData, nil
-}
-
-func (f *SubFunction) BuyerSellerDetection(
-	sdc *api_input_reader.SDC,
-	psdc *api_processing_data_formatter.SDC,
-) (*api_processing_data_formatter.BuyerSellerDetection, error) {
-	var err error
-	var buyerSellerDetection *api_processing_data_formatter.BuyerSellerDetection
-	var metaData *api_processing_data_formatter.MetaData
-
-	metaData, err = f.MetaData(sdc, psdc)
-	if err != nil {
-		return nil, err
-	}
-	psdc.MetaData = metaData
-
-	buyerSellerDetection, err = psdc.ConvertToBuyerSellerDetection(sdc)
-	if err != nil {
-		return nil, err
-	}
-
-	// 1-0. 入力ファイルのbusiness_partnerがBuyerであるかSellerであるかの判断
-	if *metaData.BusinessPartnerID == *buyerSellerDetection.Buyer && *metaData.BusinessPartnerID != *buyerSellerDetection.Seller {
-		buyerSellerDetection.BuyerOrSeller = "Buyer"
-		f.l.JsonParseOut(buyerSellerDetection.BuyerOrSeller)
-	} else if *metaData.BusinessPartnerID != *buyerSellerDetection.Buyer && *metaData.BusinessPartnerID == *buyerSellerDetection.Seller {
-		buyerSellerDetection.BuyerOrSeller = "Seller"
-		f.l.JsonParseOut(buyerSellerDetection.BuyerOrSeller)
-	} else {
-		return nil, fmt.Errorf("business_partnerがBuyerまたはSellerと一致しません")
-	}
-	return buyerSellerDetection, nil
+	return metaData
 }
 
 func (f *SubFunction) OrderRegistrationType(
 	sdc *api_input_reader.SDC,
 	psdc *api_processing_data_formatter.SDC,
-) (*api_processing_data_formatter.OrderRegistrationType, error) {
-	var err error
-	var orderRegistrationType *api_processing_data_formatter.OrderRegistrationType
+) *api_processing_data_formatter.OrderRegistrationType {
+	data := psdc.ConvertToOrderRegistrationType(sdc)
 
-	orderRegistrationType, err = psdc.ConvertToOrderRegistrationType(sdc)
-	if err != nil {
-		return nil, err
-	}
-
-	if orderRegistrationType.ReferenceDocument != nil {
-		if orderRegistrationType.ReferenceDocumentItem != nil {
-			orderRegistrationType.RegistrationType = "参照登録"
-		} else {
-			orderRegistrationType.RegistrationType = "直接登録"
-		}
-	} else {
-		orderRegistrationType.RegistrationType = "直接登録"
-	}
-	return orderRegistrationType, nil
+	return data
 }
 
 func (f *SubFunction) OrderReferenceType(
@@ -111,7 +57,7 @@ func (f *SubFunction) OrderReferenceType(
 		return nil, err
 	}
 
-	orderReferenceTypeQueryGets, err := psdc.ConvertToOrderReferenceTypeQueryGets(sdc, rows)
+	orderReferenceTypeQueryGets, err := psdc.ConvertToOrderReferenceTypeQueryGets(rows)
 	if err != nil {
 		return nil, err
 	}
@@ -121,10 +67,7 @@ func (f *SubFunction) OrderReferenceType(
 	for i := 0; i < len(*orderReferenceTypeQueryGets); i++ {
 		if sdc.OrdersInputParameters.ReferenceDocument != nil && (*orderReferenceTypeQueryGets)[i].NumberRangeFrom != nil && (*orderReferenceTypeQueryGets)[i].NumberRangeTo != nil {
 			if *sdc.OrdersInputParameters.ReferenceDocument >= *(*orderReferenceTypeQueryGets)[i].NumberRangeFrom && *sdc.OrdersInputParameters.ReferenceDocument <= *(*orderReferenceTypeQueryGets)[i].NumberRangeTo {
-				data, err = psdc.ConvertToOrderReferenceType(sdc, &(*orderReferenceTypeQueryGets)[i])
-				if err != nil {
-					return nil, err
-				}
+				data = psdc.ConvertToOrderReferenceType(&(*orderReferenceTypeQueryGets)[i])
 				break
 			}
 		}
@@ -144,17 +87,20 @@ func (f *SubFunction) CreateSdc(
 	wg := sync.WaitGroup{}
 	wg.Add(3)
 
+	psdc.MetaData = f.MetaData(sdc, psdc)
+
 	// 0-1 ReferenceDocumentおよびReferenceDocumentItemの値によるオーダー登録種別の判定
-	psdc.OrderRegistrationType, e = f.OrderRegistrationType(sdc, psdc)
-	if e != nil {
-		err = e
+	psdc.OrderRegistrationType = f.OrderRegistrationType(sdc, psdc)
+
+	//0-2. ReferenceDocumentの値によるオーダー参照先伝票種別の判定
+	psdc.OrderReferenceType, err = f.OrderReferenceType(sdc, psdc)
+	if err != nil {
 		return err
 	}
 
-	//0-2. ReferenceDocumentの値によるオーダー参照先伝票種別の判定
-	psdc.OrderReferenceType, e = f.OrderReferenceType(sdc, psdc)
-	if e != nil {
-		err = e
+	// 1-0. 入力ファイルのbusiness_partnerがBuyerであるかSellerであるかの判断
+	psdc.BuyerSellerDetection, err = f.BuyerSellerDetection(sdc, psdc)
+	if err != nil {
 		return err
 	}
 
@@ -243,7 +189,7 @@ func (f *SubFunction) CreateSdc(
 			return
 		}
 
-		// 2-2. ビジネスパートナの一般データの取得
+		// 2-2. ビジネスパートナの一般データの取得  // 2-1
 		psdc.HeaderPartnerBPGeneral, e = f.HeaderPartnerBPGeneral(sdc, psdc)
 		if e != nil {
 			err = e
@@ -252,6 +198,89 @@ func (f *SubFunction) CreateSdc(
 
 		// 4-1. ビジネスパートナマスタの取引先プラントデータの取得
 		psdc.HeaderPartnerPlant, e = f.HeaderPartnerPlant(sdc, psdc)
+		if e != nil {
+			err = e
+			return
+		}
+
+		// 5-1-1. BPTaxClassification  // 2-2
+		psdc.ItemBPTaxClassification, e = f.ItemBPTaxClassification(sdc, psdc)
+		if e != nil {
+			err = e
+			return
+		}
+
+		// 5-1-2 ProductTaxClassification
+		psdc.ItemProductTaxClassification, e = f.ItemProductTaxClassification(sdc, psdc)
+		if e != nil {
+			err = e
+			return
+		}
+
+		// 5-1-3 TaxCode  // 5-1-1, 5-1-2
+		psdc.TaxCode, e = f.TaxCode(sdc, psdc)
+		if e != nil {
+			err = e
+			return
+		}
+
+		// 1-8. PricingDate
+		psdc.PricingDate = f.PricingDate(sdc, psdc)
+
+		// 8-1. 価格マスタデータの取得(入力ファイルの[ConditionAmount]がnullである場合)  // 1-8
+		psdc.PriceMaster, e = f.PriceMaster(sdc, psdc)
+		if e != nil {
+			err = e
+			return
+		}
+
+		// 8-2. 価格の計算(入力ファイルの[ConditionAmount]がnullである場合)  // 8-1
+		psdc.ConditionAmount, e = f.ConditionAmount(sdc, psdc)
+		if e != nil {
+			err = e
+			return
+		}
+
+		// 5-21. NetAmount  // 8-2
+		psdc.NetAmount = f.NetAmount(sdc, psdc)
+
+		// 10-1. TotalNetAmount  // 5-21
+		psdc.TotalNetAmount, e = f.TotalNetAmount(sdc, psdc)
+		if e != nil {
+			err = e
+			return
+		}
+
+		// 5-20. TaxRateの計算  // 5-1-3
+		psdc.TaxRate, e = f.TaxRate(sdc, psdc)
+		if e != nil {
+			err = e
+			return
+		}
+
+		// 5-22. TaxAmount  // 5-1-3, 5-20, 5-21
+		psdc.TaxAmount, e = f.TaxAmount(sdc, psdc)
+		if e != nil {
+			err = e
+			return
+		}
+
+		// 10-2. TotalTaxAmount  // 5-22
+		psdc.TotalTaxAmount, e = f.TotalTaxAmount(sdc, psdc)
+		if e != nil {
+			err = e
+			return
+		}
+
+		// 5-23. GrossAmount  // 5-21, 5-22
+		psdc.GrossAmount, e = f.GrossAmount(sdc, psdc)
+		if e != nil {
+			err = e
+			return
+		}
+
+		// 10-3. TotalGrossAmount  // 5-23
+		psdc.TotalGrossAmount, e = f.TotalGrossAmount(sdc, psdc)
 		if e != nil {
 			err = e
 			return

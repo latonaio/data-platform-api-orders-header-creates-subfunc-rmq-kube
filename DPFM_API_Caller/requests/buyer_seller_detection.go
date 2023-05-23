@@ -5,4 +5,5 @@ type BuyerSellerDetection struct {
 	ServiceLabel      string `json:"service_label"`
 	Buyer             *int   `json:"Buyer"`
 	Seller            *int   `json:"Seller"`
+	BuyerOrSeller     string `json:"BuyerOrSeller"`
 }

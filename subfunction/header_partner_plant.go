@@ -17,10 +17,7 @@ func (f *SubFunction) HeaderPartnerPlant(
 
 	buyerSellerDetection := psdc.BuyerSellerDetection
 	headerPartnerFunction := psdc.HeaderPartnerFunction
-	dataKey, err := psdc.ConvertToHeaderPartnerPlantKey(len(*headerPartnerFunction))
-	if err != nil {
-		return nil, err
-	}
+	dataKey := psdc.ConvertToHeaderPartnerPlantKey(len(*headerPartnerFunction))
 
 	for i, v := range *headerPartnerFunction {
 		(*dataKey)[i].BusinessPartnerID = buyerSellerDetection.BusinessPartnerID
@@ -47,7 +44,7 @@ func (f *SubFunction) HeaderPartnerPlant(
 
 	if buyerSellerDetection.BuyerOrSeller == "Seller" {
 		rows, err = f.db.Query(
-			`SELECT PartnerFunctionBusinessPartner, PartnerFunction, PlantCounter, Plant, DefaultPlant
+			`SELECT PartnerFunctionBusinessPartner, PartnerFunction, PlantCounter, Plant, DefaultPlant, DefaultStockConfirmationPlant
 				FROM DataPlatformMastersAndTransactionsMysqlKube.data_platform_business_partner_customer_partner_plant_data
 				WHERE (BusinessPartner, Customer, PartnerCounter, PartnerFunction, PartnerFunctionBusinessPartner) IN ( `+repeat+` );`, args...,
 		)
@@ -56,7 +53,7 @@ func (f *SubFunction) HeaderPartnerPlant(
 		}
 	} else if buyerSellerDetection.BuyerOrSeller == "Buyer" {
 		rows, err = f.db.Query(
-			`SELECT PartnerFunctionBusinessPartner, PartnerFunction, PlantCounter, Plant, DefaultPlant
+			`SELECT PartnerFunctionBusinessPartner, PartnerFunction, PlantCounter, Plant, DefaultPlant, DefaultStockConfirmationPlant
 				FROM DataPlatformMastersAndTransactionsMysqlKube.data_platform_business_partner_supplier_partner_plant_data
 				WHERE (BusinessPartner, Supplier, PartnerCounter, PartnerFunction, PartnerFunctionBusinessPartner) IN ( `+repeat+` );`, args...,
 		)
@@ -65,7 +62,7 @@ func (f *SubFunction) HeaderPartnerPlant(
 		}
 	}
 
-	data, err := psdc.ConvertToHeaderPartnerPlant(sdc, rows)
+	data, err := psdc.ConvertToHeaderPartnerPlant(rows)
 	if err != nil {
 		return nil, err
 	}

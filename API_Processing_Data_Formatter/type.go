@@ -54,25 +54,38 @@ type EC_MC struct {
 }
 
 type SDC struct {
-	OrderRegistrationType     *OrderRegistrationType     `json:"OrderRegistrationType"`
-	OrderReferenceType        *OrderReferenceType        `json:"OrderReferenceType"`
-	MetaData                  *MetaData                  `json:"MetaData"`
-	BuyerSellerDetection      *BuyerSellerDetection      `json:"BuyerSellerDetection"`
-	HeaderBPCustomer          *HeaderBPCustomer          `json:"HeaderBPCustomer"`
-	HeaderBPSupplier          *HeaderBPSupplier          `json:"HeaderBPSupplier"`
-	HeaderBPCustomerSupplier  *HeaderBPCustomerSupplier  `json:"HeaderBPCustomerSupplier"`
-	CalculateOrderID          *CalculateOrderID          `json:"CalculateOrderID"`
-	PaymentTerms              *[]PaymentTerms            `json:"PaymentTerms"`
-	InvoiceDocumentDate       *InvoiceDocumentDate       `json:"InvoiceDocumentDate"`
-	PaymentDueDate            *PaymentDueDate            `json:"PaymentDueDate"`
-	NetPaymentDays            *NetPaymentDays            `json:"NetPaymentDays"`
-	OverallDocReferenceStatus *OverallDocReferenceStatus `json:"OverallDocReferenceStatus"`
-	PriceDetnExchangeRate     *PriceDetnExchangeRate     `json:"PriceDetnExchangeRate"`
-	AccountingExchangeRate    *AccountingExchangeRate    `json:"AccountingExchangeRate"`
-	TransactionCurrency       *TransactionCurrency       `json:"TransactionCurrency"`
-	HeaderPartnerFunction     *[]HeaderPartnerFunction   `json:"HeaderPartnerFunction"`
-	HeaderPartnerBPGeneral    *[]HeaderPartnerBPGeneral  `json:"HeaderPartnerBPGeneral"`
-	HeaderPartnerPlant        *[]HeaderPartnerPlant      `json:"HeaderPartnerPlant"`
+	OrderRegistrationType        *OrderRegistrationType          `json:"OrderRegistrationType"`
+	OrderReferenceType           *OrderReferenceType             `json:"OrderReferenceType"`
+	MetaData                     *MetaData                       `json:"MetaData"`
+	BuyerSellerDetection         *BuyerSellerDetection           `json:"BuyerSellerDetection"`
+	HeaderBPCustomer             *HeaderBPCustomer               `json:"HeaderBPCustomer"`
+	HeaderBPSupplier             *HeaderBPSupplier               `json:"HeaderBPSupplier"`
+	HeaderBPCustomerSupplier     *HeaderBPCustomerSupplier       `json:"HeaderBPCustomerSupplier"`
+	CalculateOrderID             *CalculateOrderID               `json:"CalculateOrderID"`
+	PaymentTerms                 *[]PaymentTerms                 `json:"PaymentTerms"`
+	InvoiceDocumentDate          *InvoiceDocumentDate            `json:"InvoiceDocumentDate"`
+	PaymentDueDate               *PaymentDueDate                 `json:"PaymentDueDate"`
+	NetPaymentDays               *NetPaymentDays                 `json:"NetPaymentDays"`
+	OverallDocReferenceStatus    *OverallDocReferenceStatus      `json:"OverallDocReferenceStatus"`
+	PricingDate                  *PricingDate                    `json:"PricingDate"`
+	PriceDetnExchangeRate        *PriceDetnExchangeRate          `json:"PriceDetnExchangeRate"`
+	AccountingExchangeRate       *AccountingExchangeRate         `json:"AccountingExchangeRate"`
+	TransactionCurrency          *TransactionCurrency            `json:"TransactionCurrency"`
+	TotalNetAmount               *TotalNetAmount                 `json:"TotalNetAmount"`
+	TotalTaxAmount               *TotalTaxAmount                 `json:"TotalTaxAmount"`
+	TotalGrossAmount             *TotalGrossAmount               `json:"TotalGrossAmount"`
+	HeaderPartnerFunction        *[]HeaderPartnerFunction        `json:"HeaderPartnerFunction"`
+	HeaderPartnerBPGeneral       *[]HeaderPartnerBPGeneral       `json:"HeaderPartnerBPGeneral"`
+	HeaderPartnerPlant           *[]HeaderPartnerPlant           `json:"HeaderPartnerPlant"`
+	ItemBPTaxClassification      *ItemBPTaxClassification        `json:"ItemBPTaxClassification"`
+	ItemProductTaxClassification *[]ItemProductTaxClassification `json:"ItemProductTaxClassification"`
+	TaxCode                      *[]TaxCode                      `json:"TaxCode"`
+	TaxRate                      *[]TaxRate                      `json:"TaxRate"`
+	NetAmount                    *[]NetAmount                    `json:"NetAmount"`
+	TaxAmount                    *[]TaxAmount                    `json:"TaxAmount"`
+	GrossAmount                  *[]GrossAmount                  `json:"GrossAmount"`
+	PriceMaster                  *[]PriceMaster                  `json:"PriceMaster"`
+	ConditionAmount              *[]ConditionAmount              `json:"ConditionAmount"`
 }
 
 // Initializer
@@ -88,16 +101,17 @@ type OrderRegistrationType struct {
 }
 
 type OrderReferenceTypeQueryGets struct {
-	ServiceLabel             *string `json:"ServiceLabel"`
-	FieldNameWithNumberRange *string `json:"FieldNameWithNumberRange"`
-	NumberRangeFrom          *int    `json:"NumberRangeFrom"`
-	NumberRangeTo            *int    `json:"NumberRangeTo"`
+	ServiceLabel             string `json:"ServiceLabel"`
+	FieldNameWithNumberRange string `json:"FieldNameWithNumberRange"`
+	NumberRangeFrom          *int   `json:"NumberRangeFrom"`
+	NumberRangeTo            *int   `json:"NumberRangeTo"`
 }
 
 type OrderReferenceType struct {
-	ServiceLabel *string `json:"ServiceLabel"`
+	ServiceLabel string `json:"ServiceLabel"`
 }
 
+// Header
 type BuyerSellerDetection struct {
 	BusinessPartnerID *int   `json:"business_partner"`
 	ServiceLabel      string `json:"service_label"`
@@ -106,7 +120,6 @@ type BuyerSellerDetection struct {
 	BuyerOrSeller     string `json:"BuyerOrSeller"`
 }
 
-// Header
 type HeaderBPCustomer struct {
 	OrderID                  *int    `json:"OrderID"`
 	BusinessPartnerID        int     `json:"business_partner"`
@@ -142,7 +155,7 @@ type HeaderBPCustomerSupplier struct {
 
 type CalculateOrderIDKey struct {
 	ServiceLabel             string `json:"service_label"`
-	FieldNameWithNumberRange string
+	FieldNameWithNumberRange string `json:"FieldNameWithNumberRange"`
 }
 
 type CalculateOrderIDQueryGets struct {
@@ -153,7 +166,7 @@ type CalculateOrderIDQueryGets struct {
 
 type CalculateOrderID struct {
 	OrderIDLatestNumber *int `json:"OrderIDLatestNumber"`
-	OrderID             *int `json:"OrderID"`
+	OrderID             int  `json:"OrderID"`
 }
 
 type PaymentTermsKey struct {
@@ -189,6 +202,10 @@ type OverallDocReferenceStatus struct {
 	OverallDocReferenceStatus string `json:"OverallDocReferenceStatus"`
 }
 
+type PricingDate struct {
+	PricingDate string `json:"PricingDate"`
+}
+
 type PriceDetnExchangeRate struct {
 	PriceDetnExchangeRate *float32 `json:"PriceDetnExchangeRate"`
 }
@@ -201,45 +218,155 @@ type TransactionCurrency struct {
 	TransactionCurrency string `json:"TransactionCurrency"`
 }
 
+type TotalNetAmount struct {
+	TotalNetAmount float32 `json:"TotalNetAmount"`
+}
+
+type TotalTaxAmount struct {
+	TotalTaxAmount float32 `json:"TotalTaxAmount"`
+}
+
+type TotalGrossAmount struct {
+	TotalGrossAmount float32 `json:"TotalGrossAmount"`
+}
+
+// HeaderPartner
 type HeaderPartnerFunctionKey struct {
-	OrderID            *int `json:"OrderID"`
 	BusinessPartnerID  *int `json:"business_partner"`
 	CustomerOrSupplier *int `json:"CustomerOrSupplier"`
 }
 
 type HeaderPartnerFunction struct {
-	OrderID           *int   `json:"OrderID"`
-	BusinessPartnerID *int   `json:"business_partner"`
-	PartnerCounter    *int   `json:"PartnerCounter"`
-	PartnerFunction   string `json:"PartnerFunction"`
-	BusinessPartner   *int   `json:"BusinessPartner"`
-	DefaultPartner    *bool  `json:"DefaultPartner"`
+	BusinessPartnerID int     `json:"business_partner"`
+	PartnerCounter    int     `json:"PartnerCounter"`
+	PartnerFunction   *string `json:"PartnerFunction"`
+	BusinessPartner   *int    `json:"BusinessPartner"`
+	DefaultPartner    *bool   `json:"DefaultPartner"`
 }
 
 type HeaderPartnerBPGeneral struct {
-	OrderID                 *int   `json:"OrderID"`
-	BusinessPartner         *int   `json:"BusinessPartner"`
-	BusinessPartnerFullName string `json:"BusinessPartnerFullName"`
-	BusinessPartnerName     string `json:"BusinessPartnerName"`
-	Country                 string `json:"Country"`
-	Language                string `json:"Language"`
-	AddressID               *int   `json:"AddressID"`
+	BusinessPartner         int     `json:"BusinessPartner"`
+	BusinessPartnerFullName *string `json:"BusinessPartnerFullName"`
+	BusinessPartnerName     string  `json:"BusinessPartnerName"`
+	Country                 string  `json:"Country"`
+	Language                string  `json:"Language"`
+	AddressID               *int    `json:"AddressID"`
 }
 
+// HeaderPartnerPlant
 type HeaderPartnerPlantKey struct {
-	OrderID                        *int   `json:"OrderID"`
-	BusinessPartnerID              *int   `json:"business_partner"`
-	CustomerOrSupplier             *int   `json:"CustomerOrSupplier"`
-	PartnerCounter                 *int   `json:"PartnerCounter"`
-	PartnerFunction                string `json:"PartnerFunction"`
-	PartnerFunctionBusinessPartner *int   `json:"PartnerFunctionBusinessPartner"`
+	BusinessPartnerID              *int    `json:"business_partner"`
+	CustomerOrSupplier             *int    `json:"CustomerOrSupplier"`
+	PartnerCounter                 int     `json:"PartnerCounter"`
+	PartnerFunction                *string `json:"PartnerFunction"`
+	PartnerFunctionBusinessPartner *int    `json:"PartnerFunctionBusinessPartner"`
 }
 
 type HeaderPartnerPlant struct {
-	OrderID         *int   `json:"OrderID"`
-	BusinessPartner *int   `json:"BusinessPartner"`
-	PartnerFunction string `json:"PartnerFunction"`
-	PlantCounter    *int   `json:"PlantCounter"`
-	Plant           string `json:"Plant"`
-	DefaultPlant    *bool  `json:"DefaultPlant"`
+	BusinessPartner               int     `json:"BusinessPartner"`
+	PartnerFunction               string  `json:"PartnerFunction"`
+	PlantCounter                  int     `json:"PlantCounter"`
+	Plant                         *string `json:"Plant"`
+	DefaultPlant                  *bool   `json:"DefaultPlant"`
+	DefaultStockConfirmationPlant *bool   `json:"DefaultStockConfirmationPlant"`
+}
+
+// Item
+type ItemBPTaxClassificationKey struct {
+	BusinessPartnerID  *int   `json:"business_partner"`
+	CustomerOrSupplier *int   `json:"CustomerOrSupplier"`
+	DepartureCountry   string `json:"DepartureCountry"`
+}
+
+type ItemBPTaxClassification struct {
+	BusinessPartnerID   int     `json:"business_partner"`
+	CustomerOrSupplier  int     `json:"CustomerOrSupplier"`
+	DepartureCountry    string  `json:"DepartureCountry"`
+	BPTaxClassification *string `json:"BPTaxClassification"`
+}
+
+type ItemProductTaxClassificationKey struct {
+	Product           string `json:"Product"`
+	BusinessPartnerID *int   `json:"business_partner"`
+	Country           string `json:"Country"`
+	TaxCategory       string `json:"TaxCategory"`
+}
+
+type ItemProductTaxClassification struct {
+	Product                  string  `json:"Product"`
+	BusinessPartnerID        int     `json:"business_partner"`
+	Country                  string  `json:"Country"`
+	TaxCategory              string  `json:"TaxCategory"`
+	ProductTaxClassification *string `json:"ProductTaxClassification"`
+}
+
+type TaxCode struct {
+	Product                  string  `json:"Product"`
+	BPTaxClassification      *string `json:"BPTaxClassification"`
+	ProductTaxClassification *string `json:"ProductTaxClassification"`
+	OrderType                string  `json:"OrderType"`
+	TaxCode                  string  `json:"TaxCode"`
+}
+
+type TaxRateKey struct {
+	Country           string   `json:"Country"`
+	TaxCode           []string `json:"TaxCode"`
+	ValidityEndDate   string   `json:"ValidityEndDate"`
+	ValidityStartDate string   `json:"ValidityStartDate"`
+}
+
+type TaxRate struct {
+	Country           string   `json:"Country"`
+	TaxCode           string   `json:"TaxCode"`
+	ValidityEndDate   string   `json:"ValidityEndDate"`
+	ValidityStartDate *string  `json:"ValidityStartDate"`
+	TaxRate           *float32 `json:"TaxRate"`
+}
+
+type NetAmount struct {
+	Product   string   `json:"Product"`
+	NetAmount *float32 `json:"NetAmount"`
+}
+
+type TaxAmount struct {
+	Product   string   `json:"Product"`
+	TaxCode   string   `json:"TaxCode"`
+	TaxRate   *float32 `json:"TaxRate"`
+	NetAmount *float32 `json:"NetAmount"`
+	TaxAmount *float32 `json:"TaxAmount"`
+}
+
+type GrossAmount struct {
+	Product     string   `json:"Product"`
+	NetAmount   *float32 `json:"NetAmount"`
+	TaxAmount   *float32 `json:"TaxAmount"`
+	GrossAmount *float32 `json:"GrossAmount"`
+}
+
+// ItemPricingElement
+type PriceMasterKey struct {
+	BusinessPartnerID          *int     `json:"business_partner"`
+	Product                    []string `json:"Product"`
+	CustomerOrSupplier         *int     `json:"CustomerOrSupplier"`
+	ConditionValidityEndDate   string   `json:"ConditionValidityEndDate"`
+	ConditionValidityStartDate string   `json:"ConditionValidityStartDate"`
+}
+
+type PriceMaster struct {
+	BusinessPartnerID          int      `json:"business_partner"`
+	Product                    string   `json:"Product"`
+	CustomerOrSupplier         *int     `json:"CustomerOrSupplier"`
+	ConditionValidityEndDate   string   `json:"ConditionValidityEndDate"`
+	ConditionValidityStartDate string   `json:"ConditionValidityStartDate"`
+	ConditionRecord            int      `json:"ConditionRecord"`
+	ConditionSequentialNumber  int      `json:"ConditionSequentialNumber"`
+	ConditionType              string   `json:"ConditionType"`
+	ConditionRateValue         *float32 `json:"ConditionRateValue"`
+}
+
+type ConditionAmount struct {
+	Product                    string   `json:"Product"`
+	ConditionQuantity          *float32 `json:"ConditionQuantity"`
+	ConditionAmount            *float32 `json:"ConditionAmount"`
+	ConditionIsManuallyChanged *bool    `json:"ConditionIsManuallyChanged"`
 }

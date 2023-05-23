@@ -15,10 +15,7 @@ func (f *SubFunction) HeaderPartnerFunction(
 	var err error
 
 	buyerSellerDetection := psdc.BuyerSellerDetection
-	dataKey, err := psdc.ConvertToHeaderPartnerFunctionKey()
-	if err != nil {
-		return nil, err
-	}
+	dataKey := psdc.ConvertToHeaderPartnerFunctionKey()
 
 	dataKey.BusinessPartnerID = buyerSellerDetection.BusinessPartnerID
 
@@ -44,7 +41,7 @@ func (f *SubFunction) HeaderPartnerFunction(
 		}
 	}
 
-	data, err := psdc.ConvertToHeaderPartnerFunction(sdc, rows)
+	data, err := psdc.ConvertToHeaderPartnerFunction(rows)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +71,7 @@ func (f *SubFunction) HeaderPartnerBPGeneral(
 		return nil, err
 	}
 
-	data, err := psdc.ConvertToHeaderPartnerBPGeneral(sdc, rows)
+	data, err := psdc.ConvertToHeaderPartnerBPGeneral(rows)
 	if err != nil {
 		return nil, err
 	}

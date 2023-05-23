@@ -13,11 +13,14 @@ func ConvertToHeader(
 	calculateOrderID := psdc.CalculateOrderID
 	headerBPCustomerSupplier := psdc.HeaderBPCustomerSupplier
 	invoiceDocumentDate := psdc.InvoiceDocumentDate
-	paymentDueDate := psdc.PaymentDueDate
-	netPaymentDays := psdc.NetPaymentDays
+	// paymentDueDate := psdc.PaymentDueDate
+	// netPaymentDays := psdc.NetPaymentDays
 	transactionCurrency := psdc.TransactionCurrency
 	priceDetnExchangeRate := psdc.PriceDetnExchangeRate
 	accountingExchangeRate := psdc.AccountingExchangeRate
+	totalNetAmount := psdc.TotalNetAmount
+	totalTaxAmount := psdc.TotalTaxAmount
+	totalGrossAmount := psdc.TotalGrossAmount
 
 	header := Header{}
 	inputHeader := sdc.Orders
@@ -39,13 +42,16 @@ func ConvertToHeader(
 		return nil, err
 	}
 
-	header.OrderID = calculateOrderID.OrderIDLatestNumber
+	header.OrderID = calculateOrderID.OrderID
 	header.InvoiceDocumentDate = invoiceDocumentDate.InvoiceDocumentDate
-	header.PaymentDueDate = paymentDueDate.PaymentDueDate
-	header.NetPaymentDays = netPaymentDays.NetPaymentDays
+	// header.PaymentDueDate = paymentDueDate.PaymentDueDate
+	// header.NetPaymentDays = netPaymentDays.NetPaymentDays
 	header.TransactionCurrency = transactionCurrency.TransactionCurrency
 	header.PriceDetnExchangeRate = priceDetnExchangeRate.PriceDetnExchangeRate
 	header.AccountingExchangeRate = accountingExchangeRate.AccountingExchangeRate
+	header.TotalNetAmount = totalNetAmount.TotalNetAmount
+	header.TotalTaxAmount = totalTaxAmount.TotalTaxAmount
+	header.TotalGrossAmount = totalGrossAmount.TotalGrossAmount
 
 	return &header, nil
 }
@@ -66,18 +72,18 @@ func ConvertToHeaderPartner(
 	}
 
 	for _, v := range *headerPartnerBPGeneral {
-		headerPartnerBPGeneralMap[*v.BusinessPartner] = v
+		headerPartnerBPGeneralMap[v.BusinessPartner] = v
 	}
 
 	for key := range headerPartnerFunctionMap {
 		headerPartners = append(headerPartners, HeaderPartner{
-			OrderID:                 calculateOrderID.OrderIDLatestNumber,
-			PartnerFunction:         headerPartnerFunctionMap[key].PartnerFunction,
+			OrderID:                 calculateOrderID.OrderID,
+			PartnerFunction:         *headerPartnerFunctionMap[key].PartnerFunction,
 			BusinessPartner:         headerPartnerBPGeneralMap[key].BusinessPartner,
 			BusinessPartnerFullName: headerPartnerBPGeneralMap[key].BusinessPartnerFullName,
-			BusinessPartnerName:     headerPartnerBPGeneralMap[key].BusinessPartnerName,
-			Country:                 headerPartnerBPGeneralMap[key].Country,
-			Language:                headerPartnerBPGeneralMap[key].Language,
+			BusinessPartnerName:     getStringPtr(headerPartnerBPGeneralMap[key].BusinessPartnerName),
+			Country:                 getStringPtr(headerPartnerBPGeneralMap[key].Country),
+			Language:                getStringPtr(headerPartnerBPGeneralMap[key].Language),
 			AddressID:               headerPartnerBPGeneralMap[key].AddressID,
 		})
 	}
@@ -95,12 +101,16 @@ func ConvertToHeaderPartnerPlant(
 
 	for i := range *headerPartnerPlant {
 		headerPartnerPlants = append(headerPartnerPlants, HeaderPartnerPlant{
-			OrderID:         calculateOrderID.OrderIDLatestNumber,
+			OrderID:         calculateOrderID.OrderID,
 			PartnerFunction: (*headerPartnerPlant)[i].PartnerFunction,
 			BusinessPartner: (*headerPartnerPlant)[i].BusinessPartner,
-			Plant:           (*headerPartnerPlant)[i].Plant,
+			Plant:           *(*headerPartnerPlant)[i].Plant,
 		})
 	}
 
 	return &headerPartnerPlants, nil
+}
+
+func getStringPtr(s string) *string {
+	return &s
 }
